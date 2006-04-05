@@ -1,0 +1,16 @@
+Package: OrderedList
+Version: 1.3.5
+Title: Similarities of Ordered Gene Lists
+Author: Xinan Yang, Stefanie Scheid, Claudio Lottaz
+Description: Detection of similarities between ordered lists of
+	genes. Thereby, either simple lists can be compared or gene
+	expression data can be used to deduce the lists. Significance 
+	of similarities is evaluated by shuffling lists or by resampling 
+	in microarray data, respectively.
+Maintainer: Claudio Lottaz <Claudio.Lottaz@molgen.mpg.de>
+Depends: R (>= 2.1.0), Biobase (>= 1.5.12), twilight (>= 1.6.1)
+biocViews: Microarray, DifferentialExpression, MultipleComparisons
+SaveImage: yes
+URL: http://compdiag.molgen.mpg.de/software/index.shtml
+License: GPL version 2.0 or newer
+Packaged: Wed Mar 29 19:00:50 2006; scheid

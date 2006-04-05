@@ -1,0 +1,421 @@
+% -*- mode:Latex -*-
+%\VignetteIndexEntry{Similarities of Ordered Gene Lists}
+%\VignetteDepends{Biobase,twilight}
+%\VignetteKeywords{Gene expression analysis}
+%\VignettePackage{OrderedList}
+
+\documentclass[11pt,a4paper,fleqn]{report}
+
+\usepackage{compdiag}
+\usepackage{amsmath}
+\usepackage[bf]{caption}
+\setlength{\captionmargin}{30pt}
+\fboxsep=2mm
+\SweaveOpts{eps=false}
+\parindent0mm
+\parskip1ex
+
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\textit{#1}}}
+\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
+
+\newcommand{\OL}{\Rpackage{OrderedList }}
+
+\renewcommand{\textfraction}{0}
+
+
+%---------------------------------------------------------------------------------%  
+\title{Similarities of Ordered Gene Lists\bigskip \\ User's Guide to the Bioconductor Package \Rpackage{OrderedList} 1.3.5}
+
+\author{Stefanie Scheid, Claudio Lottaz, Xinan Yang, and Rainer Spang\bigskip \\
+  \small email: \texttt{first.last@molgen.mpg.de}
+  }
+
+\reportnr{01}
+
+\year{2006}
+
+\abstract{This is the vignette of the Bioconductor compliant package \Rpackage{OrderedList}. We describe the methods and functions to explore the similarity between two lists of ordered genes.}
+
+\date{}
+  
+%---------------------------------------------------------------------------------%  
+\begin{document}
+\maketitle
+
+<<eval=FALSE,echo=FALSE,results=hide>>=
+q(save="no")
+
+<<echo=FALSE,results=hide>>=
+library(Biobase)
+library(twilight)
+oldopt <- options(digits=3)
+on.exit( {options(oldopt)} )
+options(width=75)
+@
+
+
+%---------------------------------------------------------------------------------%  
+%---------------------------------------------------------------------------------%  
+\chapter{Introduction}
+
+The methods of package \OL provide a \emph{comparison of comparisons}. Say, we compare two gene expression studies. Both are comparisons of two states. Preferably, one state relates to a good outcome or prognosis and the other one relates to a bad outcome. For each study separately, we might conduct a two-sample test per gene to discover differentially expressed genes. Although each single study might not necessarily reveal significant changes, we observe considerable overlap in the top-ranking genes. Hence, we wish to compare the results of the two comparisons. 
+
+We assign a \emph{similarity score} to a comparison of two ranked (ordered) gene lists. The similarity score is based on the number of overlapping genes in the top ranks. For each rank, the size of overlap is computed. The final score is in principle a weighted sum of these values, with more weight put on the top ranks. In the following chapter, we briefly review the methods introduced in Yang et al.~(2006) \cite{yang06}.
+
+
+%---------------------------------------------------------------------------------%  
+%---------------------------------------------------------------------------------%  
+\section*{Acknowledgements}
+
+This research has been supported by BMBF grants 031U109/209 and 01GR0455 of the German Federal Ministry of Education and Research. In addition X.Y. was supported by a DAAD-Fellowship.
+
+
+
+%---------------------------------------------------------------------------------%  
+%---------------------------------------------------------------------------------%  
+\chapter{Methods}\label{chap:methods}
+
+
+
+%---------------------------------------------------------------------------------%  
+\section{Similarity score}
+
+\textbf{Data sets.}\quad We start with the analysis of two gene expression studies $A$ and $B$. We assume that the two studies were either measured on the same platform or that the two sets of probes can be mapped onto each other such that the $i$th probe of study $A$ corresponds to the $i$th probe of study $B$. Both studies comprise the same number of probes.
+
+In each study, the samples divide into at least two distinct classes and we have to choose which two classes are to be compared. Within each study, a gene-wise test on the difference of class means is conducted. Appropriate tests are for example the common t-test or just the log ratio test, that is difference of means. In any case, a large positive test score corresponds to up-regulation and a large negative value to down-regulation. The genes within each study are sorted according to their test scores. Top ranks correspond to highly up-regulated genes and bottom ranks to highly down-regulated genes. These two rankings are the first stage of our analysis: the ordered gene lists $G_A$ and $G_B$.
+
+\textbf{Computing the overlap.}\quad For each rank $n$, $n=1,\dots, \# \mbox{genes}$, we count the number of genes that appear in both ordered lists up to position $n$. Table \ref{tab:example} provides an artificial example for the top 10 ranks. The values $O_n(G_A,G_B)$ denote the size of the overlap at position $n$.
+
+\begin{table}[!ht]
+  \caption{Overlap $O_n(G_A,G_B)$ of two ordered lists $G_A$ and $G_B$ for the first 10 ranks. The entries of $G_A$ and $G_B$ are randomly chosen Affymetrix probe IDs.}\label{tab:example}
+  \centering
+  \begin{tabular}{crrc}
+    Rank $n$  & $G_A$ & $G_B$ & $O_n(G_A,G_B)$\\ \hline
+    1  & \textbf{1771\_at}      & 761\_at             & 0\\
+    2  & 32344\_at            & \textbf{32623\_at}    & 0\\
+    3  & \textbf{222\_at}       & \textbf{1771\_at}     & 1\\
+    4  & \textbf{32623\_at}     & 8993\_at            & 2\\
+    5  & 32793\_at            & \textbf{31569\_at}    & 2\\
+    6  & \textbf{1124\_at}      & \textbf{1124\_at}     & 3\\
+    7  & \textbf{31569\_at}     & 2371\_at            & 4\\
+    8  & 32648\_at            & 312\_at             & 4\\
+    9  & 31636\_at            & \textbf{222\_at}      & 5\\
+    10 & 31355\_at            & 9921\_at            & 5\\
+  \end{tabular}  
+\end{table}
+
+\textbf{Preliminary similarity score.}\quad The ingredients of the preliminary version of the weighted similarity score are the total overlap and the weights. The total overlap of position $n$ is defined as the overlap of up-regulated genes $O_n(G_A,G_B)$ as in Table \ref{tab:example} plus the overlap of down-regulated genes $O_n(f(G_A),f(G_B))$, where $f(\cdot)$ refers to the flipped list with down-regulated genes on top. The total overlap $A_n$ at position $n$ is given as:
+\begin{equation}
+  A_n = O_n(G_1,G_2) + O_n(f(G_1),f(G_2)).
+\end{equation}
+
+The weights $w_\alpha$ are chosen to decay exponentially with rank $n$:
+\begin{equation}
+  w_\alpha = \exp\{-\alpha n\}.
+\end{equation}
+The parameter $\alpha$ is needed to tune the weights: a smaller $\alpha$ puts more weight on genes further down the list. We shall see later how to choose an appropriate $\alpha$. The similarity score $S^\prime_\alpha$ is defined as the sum over all weighted overlaps:
+\begin{equation}
+  S^\prime_\alpha (G_A,G_B)= \sum_{n=1}^{\# \mbox{genes}} \exp\{-\alpha n\} A_n.
+\end{equation}
+As the weights decrease towards zero for large $n$, the summation usually stops before reaching rank $n=\# \mbox{genes}$.
+
+\textbf{Final similarity score.}\quad The definition of the final version of similarity score $S_\alpha(G_A,G_B)$ needs a second parameter besides $\alpha$:
+\begin{equation}
+  S_\alpha(G_A,G_B) = \max \,\left\{ \, \beta \, S^\prime _\alpha\,(G_A,G_B), \quad (1-\beta) \, S^\prime_\alpha \,(G_A,f(G_B)) \, \right\},
+\end{equation}
+with $\beta \in \{0.5, 1\}$. Parameter $\beta$ is set by the user:
+\begin{itemize}
+  \item[--] $\beta=1$: The class labels of the two studies match. That is, the first class label of study $A$ has the same interpretation as the first class label of study $B$. The same principle applies for the second class labels. For example, both studies might compare a good to a bad prognosis group. Likewise, both might investigate the same cancer sub-types. Here orientation of the ordered lists is similar: genes on top are up-regulated, genes at the bottom are down-regulated.
+  \item[--] $\beta=0.5$: The class labels do not match. For example, study $A$ compares different outcomes while study $B$ compares different tissues. Now, the orientation of the two lists is not clear. Thus we take into account both the similarity of the originally ordered lists as well as the similarity of one list to the other list in flipped orientation.
+\end{itemize}
+%---------------------------------------------------------------------------------%  
+
+
+
+
+%---------------------------------------------------------------------------------%  
+\section{Tuning $\alpha$}
+
+Choosing a value for parameter $\alpha$ has two effects: it defines the weighing scheme for each rank but also how many ranks are taken into account, that is how far down the lists we evaluate the overlap. Each choice will yield a different similarity score, yet we do not know whether the score deviates substantially from a score based on random lists. Thus we propose a simple tuning procedure: we evaluate the distribution of observed scores and random scores to decide which choice of $\alpha$ leads to reliable scores. To this end, we go back to the original expression data of the two underlying studies. The distribution of observed scores is derived by drawing sub-samples of samples within each class of each study. In the current implementation, we draw 80\% sub-samples and then repeat the whole comparison, that is we derive rankings based on the sub-sampled data for each study and re-compute the similarity score. Similarly, the random scores are derived by randomly shuffling the samples within each study. We repeat this procedure $B$ times for each choice of $\alpha$. Thus, for each $\alpha$ we receive the distributions of $B$ observed and $B$ random scores. We evaluate the \emph{separability} of the two score disributions by applying the pAUC-score \cite{pepe03}. The pAUC-score evaluates the overlap of two distributions. A high score relates to good separation. Hence we choose $\alpha$ such that is provides us with observed scores that separate clearly from random scores. The significance is evaluated by computing an empirical p-value for the \emph{median} observed score based on the set of random scores.
+%---------------------------------------------------------------------------------%  
+
+
+
+%---------------------------------------------------------------------------------%  
+\section{Comparing lists \emph{without} expression data}
+
+We provide a function for comparing only two ranked lists of (gene) identifiers, for which the underlying gene expression data is not at hand. The scoring method is essentially the same. However, we cannot simulate a distribution of observed scores as the sub-sampling of the expression data is not possible. Thus, we cannot find an optimal $\alpha$. At least we can compute random scores by comparing one list to the randomly shuffled second list. Based on the random scores, an empirical p-value is computed for the observed score. One might then choose an $\alpha$ leading to a significant similarity.
+
+Note a second peculiarity when comparing two lists only. When gene expression data is at hand, the genes are ranked from the most up-regulated to the most down-regulated genes and we have to compute the overlap within the top ranks (up-regulated) and within the bottom ranks(down-regulated). We call this strategy \emph{two-sided}. However, when comparing lists, we might have a ranking with highly induced genes on top and not induced genes at the lower end. The induced genes are either up- or down-regulated. In this case we only want to compare the top of the lists in order to find significant overlap of induced genes. We call this strategy \emph{one-sided}. In Chapter \ref{chap:lists} we introduce a function working on two lists, for which one-sided or two-sided comparisons can be selected.
+%---------------------------------------------------------------------------------%  
+
+
+
+
+
+
+%---------------------------------------------------------------------------------%  
+%---------------------------------------------------------------------------------%  
+\chapter{Comparing Two Expression Studies}
+
+
+
+%---------------------------------------------------------------------------------%         
+\section{\Rfunction{prepareData}: Combining two studies into one expression set}
+
+\fbox{
+\begin{minipage}{0.95\textwidth}
+\Rfunction{prepareData(eset1, eset2, mapping = NULL)}
+\end{minipage}
+}
+
+The function prepares a collection of two expression sets of class \Rclass{exprSet} and/or Affy batches of class \Rclass{AffyBatch} to be passed on to the main function \Rfunction{OrderedList}. For each data set, one has to specify the variable in the corresponding phenodata from which the grouping into two distinct classes is done. The data sets are then merged into one 'exprSet' together with the rearranged phenodata. If the studies were done on different platforms but a subset of genes can be mapped from one chip to the other, this information can be provided via the 'mapping' argument.
+
+Please note that both data sets have to be pre-processed beforehand, either together or independently of each other. The preprocessed gene expression values have to be on an additive scale, that is logarithmic or log-like scale.
+
+The two inputs \Rfunarg{eset1} and \Rfunarg{eset2} are named lists with five elements:
+\begin{itemize}
+\item[--] \Rfunarg{data}: Object of class \Rfunarg{exprSet} or \Rfunarg{AffyBatch}.
+\item[--] \Rfunarg{name}: Character string with comparison label.
+\item[--] \Rfunarg{var}: Character string with phenodata variable. Based on this variable, the samples for the two-sample testing will be extracted.
+\item[--] \Rfunarg{out}: Vector of two character strings with the levels of \Rfunarg{var} that define the two clinical classes. The order of the two levels must be identical for all studies. Ideally, the first entry corresponds to the ``bad'' and the second one to the ``good'' outcome level.
+\item[--] \Rfunarg{paired}: Logical - \Rfunarg{TRUE} if samples are paired (e.g.~two measurements per patients) or \Rfunarg{FALSE} if all samples are independent of each other. If data are paired, the paired samples need to be in (whatever) successive order. Thus, the first sample of one condition must match to the first sample of the second condition and so on.
+\end{itemize}
+
+The optional argument \Rfunarg{mapping} is a data frame containing one named vector for each study. The vectors are comprised of probe IDs that fit to the rownames of the corresponding expression set. For each study, the IDs are ordered identically. For example, the $k$th row of \Rfunarg{mapping} provides the label of the $k$th gene in each single study. If all studies were done on the same chip, no mapping is needed (default).
+
+We illustrate the use of function \Rfunarg{prepareData} with an application on the exemplary data sets stored in \Rfunction{data(OL.data)}. The data contains a list with three elements: \Rfunarg{breast}, \Rfunarg{prostate}
+and \Rfunarg{map}. The first two are expression sets of class \Rclass{exprSet}
+taken from the breast cancer study of Huang et al.~(2003) \cite{huang03} and the
+prostate cancer study of Singh et al.~(2002) \cite{singh02}. Both data sets were
+preprocessed as described in Yang et al.~(2006) \cite{yang06} and 
+contain only a random subsample of the original probes. We further
+removed unneeded samples from both studies.
+The labels of the \Rfunarg{breast} expression set were extended with 'B'
+to create two data sets where the probe IDs differ but can be
+mapped onto each other. The mapping is stored in the data frame
+\Rfunarg{map}, which consists of the two probe ID vectors.
+
+For illustration, we combine the two studies pretending that we need a mapping. The first outcome of both studies relate to bad prognosis, that is ``\emph{Rec}urrence vs.~\emph{N}on-\emph{Rec}urrence'' for the prostate cancer study and ``\emph{high} risk vs.~\emph{low} risk of relapse'' for the breast cancer study.
+
+<<>>=
+library(OrderedList)
+data(OL.data)
+OL.data$breast
+OL.data$prostate
+OL.data$map[1:5,]
+
+A <- prepareData(
+eset1=list(data=OL.data$prostate,name="prostate",var="outcome",out=c("Rec","NRec"),paired=FALSE),
+eset2=list(data=OL.data$breast,name="breast",var="Risk",out=c("high","low"),paired=FALSE),
+mapping=OL.data$map
+)
+
+A
+@
+%---------------------------------------------------------------------------------%         
+
+
+
+
+
+%---------------------------------------------------------------------------------%  
+\section{\Rfunction{OrderedList}: Detecting similarities of two expression studies}
+
+\fbox{
+\begin{minipage}{0.95\textwidth}
+\Rfunction{OrderedList(eset, B = 1000, test = "z", beta = 1, percent = 0.95, verbose = TRUE, alpha = NULL, min.weight = 1e-5)}
+\end{minipage}
+}
+       
+Function \Rfunction{OrderedList} aims for the comparison of comparisons:
+given two combined expression studies the function produces a gene ranking for each study and quantifies the overlap by computing the weighted similarity scores as introduced in Chapter \ref{chap:methods}. The final list of overlapping genes consists of those probes that contribute a certain percentage to the overall similarity score.
+
+The input arguments are:
+\begin{itemize}
+\item[--] \Rfunarg{eset}: Expression set containing the two studies of interest.
+\item[--] \Rfunarg{B}: Number of internal sub-samples needed to optimize $\alpha$.
+\item[--] \Rfunarg{test}: String, one of \Rfunarg{"fc"} (log ratio = log fold change), \Rfunarg{"t"} (t-test with equal variances) or \Rfunarg{"z"} (t-test with regularized variances). The z-statistic is implemented as described in Efron et al.~(2001) \cite{efron01}.
+\item[--] \Rfunarg{beta}: Either 1 or 0.5. In a comparison where the class labels of the studies match, we set \Rfunarg{beta=1}. For example, in each single study the first class relates to bad prognosis while the second class relates to good prognosis. If a matching is not possible, we set \Rfunarg{beta=0.5}. For example, we compare a study with good/bad prognosis classes to a study, in which the classes are two types of cancer tissues.
+\item[--] \Rfunarg{percent}: The final list of overlapping genes consists of those probes that contribute a certain percentage to the overall similarity score. Default is \Rfunarg{percent=0.95}. To get the full list of genes, set \Rfunarg{percent=1}.
+\item[--] \Rfunarg{verbose}: Logical value for message printing.
+\item[--] \Rfunarg{alpha}: A vector of weighting parameters. If set to \Rfunarg{NULL} (the default), parameters are computed such that the top 100 to the top 2500 ranks receive weights above \Rfunarg{min.weight}.    
+\item[--] \Rfunarg{min.weight}: The minimal weight to be taken into account while computing scores.
+\end{itemize}
+
+We apply function \Rfunarg{OrderedList} with default values to our combined data set. The result is an object of class \Rclass{OrderedList} for which print and plot function exist. For the result see Figures \ref{fig:pauc} to \ref{fig:overlap}. The sorted list of overlapping genes is stored in \Rfunarg{\$intersect}.
+
+<<>>=
+x <- OrderedList(A)
+x
+x$intersect[1:5]
+@ %$
+
+
+<<echo=FALSE,results=hide>>=
+png(filename="tr_2006_01-pauc.png",width=600,height=450)
+plot(x,"pauc")
+dev.off()
+png(filename="tr_2006_01-scores.png",width=600,height=450)
+plot(x,"scores")
+dev.off()
+png(filename="tr_2006_01-overlap.png",width=600,height=450)
+plot(x,"overlap")
+dev.off()
+@
+
+
+\begin{figure}[tp]
+\centering
+\includegraphics[width=0.7\textwidth]{tr_2006_01-pauc.png}
+\caption{\Rfunction{plot(x,"pauc")}: Option \Rfunarg{"pauc"} selects the plot of pAUC-scores, based on which the optimal $\alpha$ is chosen. The pAUC-score measure the separability between the two distributions of observed and random similarity scores. The similarity scores depend on $\alpha$ and thus $\alpha$ is chosen where the pAUC-scores are maximal. The optimal $\alpha$ is marked by a vertical line.}\label{fig:pauc}
+\end{figure}
+
+
+\begin{figure}[tp]
+\centering
+\includegraphics[width=0.7\textwidth]{tr_2006_01-scores.png}
+\caption{\Rfunction{plot(x,"scores")}: Shown are kernel density estimates of the two score distributions underlying the pAUC-score for optimal $\alpha$. The red curve correspondence to simulated observed scores and the black curve to simulated random scores. The vertical red line denotes the actually observed similarity score. The bottom rugs mark the simulated values. The two distributions got the highest pAUC-score of separability and thus provide the best signal-to-noise separation.}\label{fig:scores}
+\end{figure}
+
+\begin{figure}[tp]
+\centering
+\includegraphics[width=0.7\textwidth]{tr_2006_01-overlap.png}
+\caption{\Rfunction{plot(x,"overlap")}: Displayed are the numbers of overlapping genes in the two gene lists. The overlap size is drawn as a step function over the respective ranks. Top ranks correspond to up-regulated and bottom ranks to down-regulated genes. In addition, the expected overlap and 95\% confidence intervals derived from a hypergeometric distribution are shown.}\label{fig:overlap}
+\end{figure}
+%---------------------------------------------------------------------------------%         
+
+
+
+
+
+
+%---------------------------------------------------------------------------------%  
+%---------------------------------------------------------------------------------%  
+\chapter{Comparing Two Ordered Lists}\label{chap:lists}
+
+
+
+
+%---------------------------------------------------------------------------------%  
+\section{\Rfunction{compareLists}: Detecting similarities of two ordered gene lists}
+
+\fbox{
+\begin{minipage}{0.95\textwidth}
+\Rfunction{compareLists(ID.List1, ID.List2, mapping = NULL, two.sided = TRUE, B = 1000, alphas = NULL, min.weight = 1e-5)}
+\end{minipage}
+}
+
+The two lists received as arguments are matched against each other
+according to the given mapping. The comparison is performed from
+both ends by default. Permutations of lists are used to generate
+random scores and compute empirical p-values. The evaluation is
+also performed for the  case the lists should be reversed.
+
+The input arguments are:
+\begin{itemize}
+\item[--] \Rfunarg{ID.List1}: First ordered list of identifiers to be compared.
+\item[--] \Rfunarg{ID.List2}: Second ordered list to be compared, must have the same length as \Rfunarg{ID.List1}.
+\item[--] \Rfunarg{ mapping}: Maps identifiers between the two lists. This is a matrix with two columns. All items in \Rfunarg{ID.List1} must match to exactly one entry of  column 1 of the mapping, each element in \Rfunarg{ID.List2} must match exactly one  element in column 2 of the mapping. If mapping is \Rfunarg{NULL}, the two lists  are expected to contain the same identifiers and there must be a one-to-one relationship between the two.
+\item[--] \Rfunarg{two.sided}: Whether the score is to be computed considering both ends of the list, or just the top members.
+\item[--] \Rfunarg{B}: The number of permutations used to estimate empirical p-values.
+\item[--] \Rfunarg{alphas}: A set of $\alpha$ candidates to be evaluated. If set to \Rfunarg{NULL}, \Rfunarg{alphas} are determined such that reasonable maximal ranks to be considered result.
+\item[--] \Rfunarg{min.weight}: The minimal weight to be considered.
+\end{itemize}
+
+For illustration, we generate two lists from the gene IDs stored in \Rfunction{OL.data\$map}. We pretend the lists were already ordered. For the second list, we shuffle within the first 500 ranks and within the last 500 ranks to get some overlap.
+
+<<>>=
+list1 <- as.character(OL.data$map$prostate)
+list2 <- c(sample(list1[1:500]),sample(list1[501:1000]))
+y <- compareLists(list1,list2)
+y
+@
+
+The returned object of class \Rclass{listComparison} can be explored by a plot function providing a series of overlap plots similar to Figure \ref{fig:overlap} and a series of random score distributions similar to Figure \ref{fig:scores}. The print function returns the table above summarizing the results. Now we might want to choose a specific $\alpha$ possibly leading to a significant score and extract the resulting set of intersecting list identifiers. This is done by applying function \Rfunction{getOverlap}:
+
+\fbox{
+\begin{minipage}{0.95\textwidth}
+\Rfunction{getOverlap(x, max.rank = 100, percent = 0.95)}
+\end{minipage}
+}
+
+The inputs are:
+\begin{itemize}
+\item[--] \Rfunarg{x}: An object of class \Rclass{listComparison}.
+\item[--] \Rfunarg{max.rank}: The maximum rank to be considered.
+\item[--] \Rfunarg{percent}: The final list of overlapping genes consists of those probes that contribute a certain percentage to the overall similarity score. Default is \Rfunarg{percent=0.95}. To get the full list of genes, set \Rfunarg{percent=1}.
+\end{itemize}
+
+Note that we have two results per $\alpha$: the similarity score for the comparison of the originally ordered lists and the reversed score for the comparison of one original to one reversed list. Function \Rfunction{getOverlap} chooses the direction with the higher similarity score. In our example above, the direct comparison is clearly the right choice. Following the example, we set the number of genes to 100 and extract the overlapping IDs. In the first 100 top ranks and the first 100 bottom ranks we find a set of \Sexpr{length(getOverlap(y)$intersect)} overlapping IDs. The result object is of class \Rclass{listComparisonOverlap}, for which again print and plot functions exist, see Figures \ref{fig:overlap2} and \ref{fig:scores2}.%$
+<<>>=
+z <- getOverlap(y)
+z
+z$intersect[1:5]
+@
+%$
+
+<<echo=FALSE,results=hide>>=
+png(filename="tr_2006_01-z.png",width=600,height=450)
+plot(z)
+dev.off()
+png(filename="tr_2006_01-density.png",width=600,height=450)
+plot(z,"density")
+dev.off()
+@
+
+\begin{figure}[tp]
+\centering
+\includegraphics[width=0.7\textwidth]{tr_2006_01-z.png}
+\caption{\Rfunction{plot(z)}: Displayed are the numbers of overlapping genes in the two gene lists. The overlap size is drawn as a step function over the respective ranks. Top ranks correspond to up-regulated and bottom ranks to down-regulated genes. In addition, the expected overlap and 95\% confidence intervals derived from a hypergeometric distribution are shown.}\label{fig:overlap2}
+\end{figure}
+
+\begin{figure}[tp]
+\centering
+\includegraphics[width=0.7\textwidth]{tr_2006_01-density.png}
+\caption{\Rfunction{plot(z,"density")}: Shown are kernel density estimates of the distribution of random similarity scores. The observed score is marked by the vertical line.}\label{fig:scores2}
+\end{figure}
+
+
+
+
+%---------------------------------------------------------------------------------%         
+
+
+
+
+
+
+
+
+
+
+%---------------------------------------------------------------------------------%  
+%---------------------------------------------------------------------------------%         
+\begin{thebibliography}{1}
+
+\bibitem{efron01}
+  Efron B, Tibshirani R, Storey JD, and Tusher V (2001): ``Empirical Bayes analysis of a microarray experiment'', \emph{Journal of the American Statistical Society} {\bf 96}, 1151--1160.
+
+\bibitem{huang03}
+  Huang E, Cheng S, Dressman H, Pittman J, Tsou M, Horng C, Bild A, Iversen E, Liao M, Chen C, West M, Nevins J, and Huang A (2003): ``Gene expression predictors of breast cancer outcomes'', \emph{Lancet} {\bf 361}, 1590--1596.
+
+\bibitem{pepe03}
+  Pepe MS, Longton G, Anderson GL, and Schummer M (2003): ``Selecting Differentially Expressed Genes from Microarray Experiments'', \emph{Biometrics} {\bf 59}, 133--142.
+
+\bibitem{singh02}
+  Singh D, Febbo PG, Ross K, Jackson DG, Manola J, Ladd C, Tamayo P, Renshaw AA, D'Amico AV, Richie JP, Lander E, Loda M, Kantoff PW, Golub TR, and Sellers WR (2002): ``Gene expression correlates of clinical prostate cancer behavior'', \emph{Cancer Cell} {\bf 1}, 203--209.
+
+\bibitem{yang06}
+  Yang X, Bentink S, Scheid S, and Spang R (2006): ``Similarities of ordered gene lists'', to appear in \emph{Journal of Bioinformatics and Computational Biology}.
+
+\end{thebibliography}
+
+
+
+
+\end{document}
