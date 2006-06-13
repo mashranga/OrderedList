@@ -29,7 +29,7 @@ check.test.args <- function(m, cl, paired) {
 test.fc <- function(m, cl, paired=FALSE) {
   lbls <- check.test.args(m, cl, paired)
   if (paired) fc <- rowMeans(m[,cl==lbls[1]] - m[,cl==lbls[2]])
-  else fc <- rowMeans(m[,cl==lbls[1]]) - rowMeans(m[,cl==lbls[2]])
+  else        fc <- rowMeans(m[,cl==lbls[1]]) - rowMeans(m[,cl==lbls[2]])
   return(fc)
 }
 
@@ -37,7 +37,7 @@ test.t <- function(m, cl, paired=FALSE) {
   lbls <- check.test.args(m, cl, paired)
   cll <- integer(length(cl))
   cll[cl==cl[1]] <- 1
-  t.stat <- twilight.teststat(xin=m, yin=cll, method="t", paired=paired)
+  t.stat <- twilight.teststat(xin=m, yin=cll, method="t", paired=paired)$observed
   names(t.stat) <- rownames(m)
   return(t.stat)
 }
@@ -46,7 +46,7 @@ test.z <- function(m, cl, paired=FALSE) {
   lbls <- check.test.args(m, cl, paired)
   cll <- integer(length(cl))
   cll[cl==cl[1]] <- 1
-  z.stat <- twilight.teststat(xin=m, yin=cll, method="z", paired=paired)
+  z.stat <- twilight.teststat(xin=m, yin=cll, method="z", paired=paired)$observed
   names(z.stat) <- rownames(m)
   return(z.stat)
 }
