@@ -69,12 +69,6 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
                          two.sided=TRUE, B=1000, alphas=NULL, 
                          min.weight=1e-5) {
 
-  # check arguments
-  n <- length(ID.List1)
-  if (n != length(ID.List2))
-    stop("List to be compared have unequal length (", length(ID.List1)," vs. ",
-         length(ID.List2), ")")
-
   # checkout mapping
   if (is.null(mapping)) {
     tmp <- sum(!(ID.List1 %in% ID.List2))
@@ -85,18 +79,29 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
     Ranks.List1 <- match(ID.List1, ID.List2)
     Ranks.List2 <- 1:n
   } else {
-    tmp <- sum(!(ID.List1 %in% mapping[,1]))
-    if (tmp > 0) stop(tmp, " element(s) of first list not found in mapping")
-    tmp <- sum(!(ID.List2 %in% mapping[,2]))
-    if (tmp > 0) stop(tmp, " element(s) of second list not found in mapping")
+    tmp <- ID.List1 %in% mapping[,1]
+    if (any(!tmp)) cat(sum(!tmp), " element(s) of first list not found in mapping\n")
+    tmp <- ID.List2 %in% mapping[,2]
+    if (any(!tmp)) cat(sum(!tmp), " element(s) of second list not found in mapping\n")
 
-    Ranks.List1 <- match(mapping[,1], ID.List1)
-    Ranks.List2 <- match(mapping[,2], ID.List2)
+    # restrict map
+    mapping <- mapping[mapping[,1] %in% ID.List1, ,drop=FALSE]
+    mapping <- mapping[mapping[,2] %in% ID.List2, ,drop=FALSE]
 
-    # map identifiers for determination of overlaps
-    ID.List1 <- match(ID.List1, mapping[,1])
-    ID.List2 <- match(ID.List2, mapping[,2])
+    # determine ranks for all 
+    m <- match(mapping[,1], ID.List1)
+    r <- rank(m, ties.method="random")
+    ID.List1 <- rep(NA, length(m))
+    ID.List1[r] <- as.character(mapping[,1])
+    Ranks.List1 <- rank(m)
+
+    m <- match(mapping[,2], ID.List2)
+    r <- rank(m, ties.method="random")
+    ID.List2 <- rep(NA, length(m))
+    ID.List2[r] <- as.character(mapping[,2])
+    Ranks.List2 <- rank(m)
   }
+  n <- length(ID.List2)
 
   # initialize
   if (is.null(alphas)) {

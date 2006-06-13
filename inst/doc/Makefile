@@ -14,4 +14,4 @@ pdf:	tr_2006_01.tex
 
 clean:
 	rm -f *.out *.bbl *.log *.aux *.blg *.toc  *~
-	rm -f *.dvi out.txt tr_2006_01-* Rplots.ps
+	rm -f *.dvi out.txt tr_2006_01-* Rplots.ps tr_2006_01.tex
