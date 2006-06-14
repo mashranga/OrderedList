@@ -70,6 +70,7 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
                          min.weight=1e-5) {
 
   # checkout mapping
+  n <- length(ID.List2)
   if (is.null(mapping)) {
     tmp <- sum(!(ID.List1 %in% ID.List2))
     if (tmp > 0) stop(tmp, " element(s) of first list not found in second")
@@ -101,7 +102,6 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
     ID.List2[r] <- as.character(mapping[,2])
     Ranks.List2 <- rank(m)
   }
-  n <- length(ID.List2)
 
   # initialize
   if (is.null(alphas)) {
