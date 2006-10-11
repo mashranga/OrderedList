@@ -7,12 +7,20 @@
 This function extracts the intersecting set of list identifiers from an object of class \code{listComparison} as output of function \code{compareLists}. The user has to specify the maximum rank to be considered to receive the intersecting set up to this rank.
 }
 \usage{
-getOverlap(x, max.rank = 100, percent = 0.95)
+getOverlap(x, max.rank = NULL, percent = 0.95)
+plot.listComparisonOverlap(x, which="overlap", no.title=FALSE,  no.legend=FALSE,
+     list.name1="List 1", list.name2="List 2", ...)
 }
 \arguments{
   \item{x}{ An object of class \code{listComparison}. }
   \item{max.rank}{ The maximum rank to be considered. }
   \item{percent}{ The final list of overlapping genes consists of those probes that contribute a certain percentage to the overall similarity score. Default is \code{percent=0.95}. To get the full list of genes, set \code{percent=1}. }
+  \item{which}{select what to draw, either 'overlap' or'scores'.}
+  \item{no.title}{whether to generate a title automatically.}
+  \item{no.legend}{whether to generate a legend automatically.}
+  \item{list.name1}{A name for the first list provided to \code{compareLists}.}
+  \item{list.name2}{A name for the second list provided to \code{compareLists}.}
+  \item{...}{Further arguments passed on to generic plot.}
 }
 \details{
 Function \code{compareLists} returns a list comparison for several choices of alpha. The number of genes to be taken into account differs dependent on alpha. One might now want to fix the number of genes and receive the resulting set of intersecting list identifiers. To this end, the user chooses a maximum rank to be considered from the values in column 'Genes' of the \code{listComparison} object. The direction (original or reversed) will internally be set to the direction yielding the higher similarity score.
@@ -34,7 +42,7 @@ If \code{two.sided} was \code{TRUE}, the first \code{max.rank} IDs on top of the
 
   There are print and plot methods for \code{listComparisonOverlap} objects. The plot
   method takes a parameter \code{which} to specify whether "overlap" or
-  "density" is to be drawn.
+  "scores" is to be drawn.
 }
 \references{
 Yang X, Bentink S, Scheid S, and Spang R (2006): Similarities of ordered gene lists, to appear in \emph{Journal of Bioinformatics and Computational Biology}.

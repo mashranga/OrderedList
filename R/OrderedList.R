@@ -1,8 +1,7 @@
 ### compute overlap
 overlap <- function(x1,x2,n){
   r <- match(x1[1:n],x2[1:n])
-  select <- r <= n
-  overlapRanks <- pmax(r[select], 1:n)
+  overlapRanks <- pmax(r, 1:n)
   tmp <- table(overlapRanks)
   x <- integer(n)
   x[as.integer(names(tmp))] <- tmp
@@ -53,23 +52,39 @@ test.z <- function(m, cl, paired=FALSE) {
 
 # score rankings by test-statistic on sampled data
 scoreOrderComparison <- function(exprs1, labels1, paired1,  exprs2, labels2, paired2, 
-                                 test.method=test.z, nn, bases, two.sided) {
+                                 test.method=test.z, nn, bases, two.sided, empirical) {
   # computes scores for matched direction only
   
-  r1 <- rank(test.method(exprs1, labels1, paired1))
-  r2 <- rank(test.method(exprs2, labels2, paired2))
-  return(scoreRankings(r1, r2, nn, bases, two.sided))
+  x1 <- test.method(exprs1, labels1, paired1)
+  x2 <- test.method(exprs2, labels2, paired2)
+  r1 <- rank(x1)
+  r2 <- rank(x2)
+  s <- scoreRankings(r1, r2, nn, bases, two.sided)
+  if (!empirical){return(s)}
+  if (empirical){
+    r1 <- rownames(exprs1)[order(x1,decreasing=TRUE)]
+    r2 <- rownames(exprs2)[order(x2,decreasing=TRUE)]
+    return(list(score=s,r1=r1,r2=r2))
+  }
 }
 
 scoreOrderComparisonBoth <- function(exprs1, labels1, paired1,  exprs2, labels2, paired2, 
-                                 test.method=test.z, nn, bases, two.sided) {
+                                 test.method=test.z, nn, bases, two.sided, empirical) {
   # computes scores for both, direct and reversed orders.
   
   n <- nrow(exprs1)
-  r1 <- rank(test.method(exprs1, labels1, paired1))
-  r2 <- rank(test.method(exprs2, labels2, paired2))
-  return(c(scoreRankings(r1, r2, nn, bases, two.sided),
-           scoreRankings(r1, n+1-r2, nn, bases, two.sided)))
+  x1 <- test.method(exprs1, labels1, paired1)
+  x2 <- test.method(exprs2, labels2, paired2)
+  r1 <- rank(x1)
+  r2 <- rank(x2)
+  s <- c(scoreRankings(r1, r2, nn, bases, two.sided),
+         scoreRankings(r1, n+1-r2, nn, bases, two.sided))
+  if (!empirical){return(s)}
+  if (empirical){
+    r1 <- rownames(exprs1)[order(x1,decreasing=TRUE)]
+    r2 <- rownames(exprs2)[order(x2,decreasing=TRUE)]
+    return(list(score=s,r1=r1,r2=r2))
+  }
 }
 
 # compare lists with resampling
@@ -100,7 +115,7 @@ preparePermutations <- function(ids, paired, B, sample.ratio=0.8) {
 }
 
 OrderedList <- function(eset, B=1000, test="z", beta=1, percent=0.95, verbose=TRUE,
-                        alpha=NULL, min.weight=1e-5){
+                        alpha=NULL, min.weight=1e-5, empirical=FALSE){
 
   ### check arguments
 
@@ -176,12 +191,19 @@ OrderedList <- function(eset, B=1000, test="z", beta=1, percent=0.95, verbose=TR
   if (is.null(alpha)) {
     nn <- c(100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000, 2500)
     alpha <- -log(min.weight)/nn
-  } else {
+  }
+  else {
     nn <- floor(-log(min.weight)/alpha)
   }
-  select <- nn < ngenes
+  select <- nn <= ngenes
   alpha <- alpha[select]
   nn <- nn[select]
+  if (length(nn)==0){
+    nn <- ngenes
+    alpha <- -log(min.weight)/nn
+    cat("Number of genes is too small.\nSelected alpha such that 'all' genes receive weights above min.weight.\n")
+  }
+
   bases <- exp(-alpha)
   nalpha <- length(alpha)
   nmax <- max(nn)
@@ -191,7 +213,7 @@ OrderedList <- function(eset, B=1000, test="z", beta=1, percent=0.95, verbose=TR
   ### score the actual orders
 
   SIM.obs <- scoreOrderComparison(eset1, id1, paired1, eset2, id2, paired2,
-                                  current.test, nn, bases, TRUE)
+                                  current.test, nn, bases, TRUE, FALSE)
 
   ### compute distributions of alternative and null-scores
 
@@ -204,44 +226,51 @@ OrderedList <- function(eset, B=1000, test="z", beta=1, percent=0.95, verbose=TR
     else cat("          0%.......:.........:.........:.........:......100%\n")
     cat("  Random: ")
     dotStep <- ceiling(B/50)
-  } else dotStep=Inf
+  } else dotStep <- Inf
 
   indirectScore <- function(i,yin1,xin1,paired1,yin2,xin2,paired2,
-                            current.test, nn, bases, dotStep=Inf) {
-    if ((i %% dotStep)==0) cat("-")
+                            current.test, nn, bases, dotStep=Inf, empirical, verbose) {
+    if ((verbose)&((i %% dotStep)==0)) cat("-")
+    if ((verbose)&(empirical)&(i==nrow(yin1))) cat(" please wait...")
     scores <- scoreOrderComparison(xin1,yin1[i,], paired1, xin2,yin2[i,], paired2,
-                                   current.test, nn, bases, TRUE)
+                                   current.test, nn, bases, TRUE, empirical)
     return(scores)
   }
   SIM.random <- t(sapply(1:B,indirectScore,samplings1$yperm,eset1,paired1,
-                                               samplings2$yperm,eset2,paired2,
-                                               current.test,nn,bases,dotStep))
+                         samplings2$yperm,eset2,paired2,
+                         current.test,nn,bases,dotStep,empirical,verbose))
+
+  if (empirical){
+    rank1 <-  matrix(unlist(SIM.random[,"r1"]),nrow=B,byrow=TRUE)
+    SIM.random <- SIM.random[,c("score","r2")]
+    rank2 <-  matrix(unlist(SIM.random[,"r2"]),nrow=B,byrow=TRUE)
+    SIM.random <- matrix(unlist(SIM.random[,"score"]),nrow=B,byrow=TRUE)
+    gc()
+  }
 
   if (verbose) cat("\nObserved: ")
   subsetScore <- function(i,index1,yin1,xin1,paired1,index2,yin2,xin2,paired2,
-                          current.test, nn, bases, dotStep=Inf) {
-    if ((i %% dotStep)==0) cat("-")
+                          current.test, nn, bases, dotStep=Inf, verbose) {
+    if ((verbose)&((i %% dotStep)==0)) cat("-")
     scores <- scoreOrderComparison(xin1[,index1[i,]],yin1[index1[i,]], paired1, 
                                    xin2[,index2[i,]],yin2[index2[i,]], paired2,
-                                   current.test, nn, bases, TRUE)
+                                   current.test, nn, bases, TRUE, FALSE)
     return(scores)
   }
   SIM.observed <- t(sapply(1:B,subsetScore,samplings1$ysubs,id1,eset1,paired1,
-                                               samplings2$ysubs,id2,eset2,paired2,
-                                               current.test,nn,bases,dotStep))
-  if (verbose) cat("\n")
+                           samplings2$ysubs,id2,eset2,paired2,
+                           current.test,nn,bases,dotStep,verbose))
   
+  if (verbose) cat("\n")
+
+  if (nalpha==1){
+    SIM.random <- matrix(SIM.random,ncol=1)
+    SIM.observed <- matrix(SIM.observed,ncol=1)
+  }
+
   ### compute pAUC scores of separability
 
   pauc <- function(x,A,B){
-#    u <- sort(unique(A),decreasing=TRUE)
-#    t <- numeric(length(u))
-#    r <- numeric(length(u))
-#    for (i in 1:length(u)){
-#      t[i] <- sum(A[B==0]>u[i])/sum(1-B)
-#      r[i] <- sum(A[B==1]>u[i])/sum(B)
-#    }
-
     n <- length(A)
     o <- order(A, decreasing=TRUE)
     r <- c(0, cumsum(B[o[-n]]))
@@ -296,7 +325,6 @@ OrderedList <- function(eset, B=1000, test="z", beta=1, percent=0.95, verbose=TR
   order2 <- rownames(eset2)[order(x2, decreasing=TRUE)]
   if (direction < 0) order2 <- rev(order2)
 
-#  pp <- c(res$SIM.observed,res$SIM.random)
   pp <- c(median(res$SIM.alternative),res$SIM.random)
   pp <- rank(pp)
   pvalue <- (length(pp)-pp[1]+1)/length(pp)
@@ -310,6 +338,38 @@ OrderedList <- function(eset, B=1000, test="z", beta=1, percent=0.95, verbose=TR
 
   y1 <- intersect(order1[1:y], order2[1:y])
   y2 <- intersect(order1[(ngenes-y+1):ngenes], order2[(ngenes-y+1):ngenes])
+
+  ### compute random overlap empirically
+
+  if (empirical){
+	if (direction < 0){
+          rank2 <- t(apply(rank2,1,rev))
+        }
+
+        top <- function(i,r1,r2,n,dotStep=Inf,verbose){
+ 		if ((verbose)&((i %% dotStep)==0)) cat("-")
+		overlap(r1[i,],r2[i,],n)
+	}
+	bottom <- function(i,r1,r2,n,dotstep=Inf,verbose){
+ 		if ((verbose)&((i %% dotStep)==0)) cat("-")
+		overlap(rev(r1[i,]),rev(r2[i,]),n)
+	}
+
+        if (verbose) {
+	cat("\nComputing empirical confidence intervals...\n")
+	cat("     Top: ")
+	}
+	emp.top <- sapply(1:B,top,rank1,rank2,nn,dotStep,verbose)
+	if (verbose) cat("\n  Bottom: ")
+	emp.bottom <- sapply(1:B,bottom,rank1,rank2,nn,dotStep,verbose)
+	if (verbose) cat("\n")
+
+	emp.bottom.ci <- t(apply(emp.bottom,1,quantile,probs=c(0.025,0.5,0.975)))
+	emp.top.ci    <- t(apply(emp.top,1,quantile,probs=c(0.025,0.5,0.975)))
+	empirical.ci  <- list(top=emp.top.ci,bottom=emp.bottom.ci)
+  }
+  if (!empirical){empirical.ci <- NULL}
+
 
   ### prepare final output
 
@@ -325,7 +385,8 @@ OrderedList <- function(eset, B=1000, test="z", beta=1, percent=0.95, verbose=TR
             call=list(B=B,test=test,beta=beta,percent=percent,
                       alpha=alpha,min.weight=min.weight,
                       labels1=as.character(unique(pdata[data1,"outcome"])),
-                      labels2=as.character(unique(pdata[data2,"outcome"])))
+                      labels2=as.character(unique(pdata[data2,"outcome"]))),
+            empirical=empirical.ci
             )
   
   class(x) <- "OrderedList" 

@@ -12,7 +12,8 @@
   contribute a certain percentage to the overall similarity score.
 }
 \usage{
-OrderedList(eset, B = 1000, test = "z", beta = 1, percent = 0.95, verbose = TRUE, alpha=NULL, min.weight=1e-5)
+OrderedList(eset, B = 1000, test = "z", beta = 1, percent = 0.95, 
+            verbose = TRUE, alpha=NULL, min.weight=1e-5, empirical=FALSE)
 }
 \arguments{
   \item{eset}{ Expression set containing the two studies of interest. Use \code{\link{prepareData}} to generate \code{eset}. }
@@ -25,6 +26,7 @@ OrderedList(eset, B = 1000, test = "z", beta = 1, percent = 0.95, verbose = TRUE
     parameters are computed such that top 100 to the top 2500 ranks receive
     weights above \code{min.weight}.}
   \item{min.weight}{The minimal weight to be taken into account while computing scores.}
+  \item{empirical}{If \code{TRUE}, empirical confidence intervals will be computed by randomly permuting the class labels of each study. Otherwise, a hypergeometric distribution is used. Confidence intervals appear when using \code{\link{plot.OrderedList}}. }
 }
 \details{
 In short, the similarity measure is computed as follows: Based on two-sample test statistics like the t-test, genes within each study are ranked from most up-regulated down to most down-regulated. Thus we have one ordered list per study. Now for each rank going both from top (up-regulated end) and from bottom (down-regulated end) we count the number of overlapping genes. The total overlap \eqn{A_n} for rank \eqn{n} is defined as:
@@ -49,6 +51,7 @@ Returns an object of class \code{OrderedList}, which consists of a list with ent
   \item{sim.scores }{List with four elements with output of the resampling with optimal \code{alpha}. \code{SIM.observed}: The observed similarity sore. \code{SIM.alternative}: Vector of observed similarity scores simulated using sub-sampling within the distinct classes of each study. \code{SIM.random}: Vector of random similarity scores simulated by randomly permuting the class labels of each study. \code{subSample}: \code{TRUE} to indicate that sub-sampling was used.}
   \item{pauc }{Vector with pAUC-scores for each candidate of the regularization parameter \eqn{\alpha}. The maximal pAUC-score defines the optimal \eqn{\alpha}. See also \code{\link{plot.OrderedList}}.}
   \item{call }{List with some of the input parameters.}
+  \item{empirical }{List with confidence interval values. Is \code{NULL} if \code{empirical=FALSE}.}
 }
 \references{
 Yang X, Bentink S, Scheid S, and Spang R (2006): Similarities of ordered gene lists, to appear in \emph{Journal of Bioinformatics and Computational Biology}.

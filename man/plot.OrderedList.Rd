@@ -20,8 +20,7 @@ Option 'pauc' selects the plot of pAUC-scores, based on which the optimal \eqn{\
 
 Figure 'scores' shows kernel density estimates of the two score distributions underlying the pAUC-score for optimal \eqn{\alpha}. The red curve correspondence to simulated observed scores and the black curve to simulated expected scores. The vertical red line denotes the actually observed similarity score. The bottom rugs mark the simulated values. The two distributions got the highest pAUC-score of separability and thus provide the best signal-to-noise separation.
 
-Finally, 'overlap' displays the numbers of overlapping genes in the two gene lists. The overlap size is drawn as a step function over the respective ranks. Top ranks correspond to up-regulated and bottom ranks to down-regulated genes. In addition, the expected overlap and 95% confidence intervals derived from a hypergeometric distribution are plotted.
-}
+Finally, 'overlap' displays the numbers of overlapping genes in the two gene lists. The overlap size is drawn as a step function over the respective ranks. Top ranks correspond to up-regulated and bottom ranks to down-regulated genes. In addition, the expected overlap and 95\% confidence intervals derived from a hypergeometric distribution are plotted. If \code{empirical=TRUE} in \code{\link{OrderedList}} the confidence intervals were derived empirically from shuffling the data and computing the overlap under the null hypothesis.}
 \value{
 No value is returned.
 }

@@ -9,10 +9,10 @@
 \usage{
 scoreOrderComparison(exprs1, labels1, paired1, 
                      exprs2, labels2, paired2, 
-                     test.method = test.z, nn, bases, two.sided)
+                     test.method = test.z, nn, bases, two.sided, empirical)
 scoreOrderComparisonBoth(exprs1, labels1, paired1, 
                          exprs2, labels2, paired2, 
-                         test.method = test.z, nn, bases, two.sided)
+                         test.method = test.z, nn, bases, two.sided, empirical)
 }
 \arguments{
   \item{exprs1,exprs2}{gene expression matrices.}

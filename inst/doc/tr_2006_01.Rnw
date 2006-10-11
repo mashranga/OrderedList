@@ -148,9 +148,31 @@ Choosing a value for parameter $\alpha$ has two effects: it defines the weighing
 %---------------------------------------------------------------------------------%  
 \section{Comparing lists \emph{without} expression data}
 
-We provide a function for comparing only two ranked lists of (gene) identifiers, for which the underlying gene expression data is not at hand. The scoring method is essentially the same. However, we cannot simulate a distribution of observed scores as the sub-sampling of the expression data is not possible. Thus, we cannot find an optimal $\alpha$. At least we can compute random scores by comparing one list to the randomly shuffled second list. Based on the random scores, an empirical p-value is computed for the observed score. One might then choose an $\alpha$ leading to a significant similarity.
+We provide a function for comparing only two ranked lists of (gene)
+identifiers, for which the underlying gene expression data is not at
+hand. The scoring method is essentially the same. However, we cannot
+simulate a distribution of observed scores as the sub-sampling of the
+expression data is not possible. Thus, we cannot find an optimal
+$\alpha$. At least we can compute random scores by comparing one list
+to the randomly shuffled second list. Based on the random scores, an
+empirical p-value is computed for the observed score. One might then
+choose an $\alpha$ leading to a significant similarity.
 
-Note a second peculiarity when comparing two lists only. When gene expression data is at hand, the genes are ranked from the most up-regulated to the most down-regulated genes and we have to compute the overlap within the top ranks (up-regulated) and within the bottom ranks(down-regulated). We call this strategy \emph{two-sided}. However, when comparing lists, we might have a ranking with highly induced genes on top and not induced genes at the lower end. The induced genes are either up- or down-regulated. In this case we only want to compare the top of the lists in order to find significant overlap of induced genes. We call this strategy \emph{one-sided}. In Chapter \ref{chap:lists} we introduce a function working on two lists, for which one-sided or two-sided comparisons can be selected.
+Note a second peculiarity when comparing two lists only. When gene
+expression data is at hand, the genes are ranked from the most
+up-regulated to the most down-regulated genes and we have to compute
+the overlap within the top ranks (up-regulated) and within the bottom
+ranks(down-regulated). We call this strategy \emph{two-sided}.
+However, when comparing lists, we might have a ranking with highly
+induced genes on top and not induced genes at the lower end. The
+induced genes are either up- or down-regulated. In this case we only
+want to compare the top of the lists in order to find significant
+overlap of induced genes. This is particularly important for
+experimental contexts, where only top genes in the lists are
+interesting for biological reasons. We call this strategy
+\emph{one-sided}. In Chapter \ref{chap:lists} we introduce a function
+working on two lists, for which one-sided or two-sided comparisons can
+be selected.
 %---------------------------------------------------------------------------------%  
 
 
@@ -250,20 +272,24 @@ The input arguments are:
 We apply function \Rfunarg{OrderedList} with default values to our combined data set. The result is an object of class \Rclass{OrderedList} for which print and plot function exist. For the result see Figures \ref{fig:pauc} to \ref{fig:overlap}. The sorted list of overlapping genes is stored in \Rfunarg{\$intersect}.
 
 <<>>=
-x <- OrderedList(A)
+x <- OrderedList(A, empirical=TRUE)
 x
 x$intersect[1:5]
 @ %$
-
+Calling \Rfunction{OrderedList} with the \Rfunarg{empirical} option set
+to true, causes \Rpackage{OrderedList} to compute empirical bounds for
+expected overlaps shown in Figure \ref{fig:overlap}. By default, this
+is switched off and underestimated bounds deduced from a
+hypergeometric distribution are drawn.
 
 <<echo=FALSE,results=hide>>=
-png(filename="tr_2006_01-pauc.png",width=600,height=450)
+bitmap(file="tr_2006_01-pauc.png",width=4,height=3,res=300)
 plot(x,"pauc")
 dev.off()
-png(filename="tr_2006_01-scores.png",width=600,height=450)
+bitmap(file="tr_2006_01-scores.png",width=4,height=3, res=300)
 plot(x,"scores")
 dev.off()
-png(filename="tr_2006_01-overlap.png",width=600,height=450)
+bitmap(file="tr_2006_01-overlap.png",width=4,height=3, res=300)
 plot(x,"overlap")
 dev.off()
 @
@@ -285,7 +311,13 @@ dev.off()
 \begin{figure}[tp]
 \centering
 \includegraphics[width=0.7\textwidth]{tr_2006_01-overlap.png}
-\caption{\Rfunction{plot(x,"overlap")}: Displayed are the numbers of overlapping genes in the two gene lists. The overlap size is drawn as a step function over the respective ranks. Top ranks correspond to up-regulated and bottom ranks to down-regulated genes. In addition, the expected overlap and 95\% confidence intervals derived from a hypergeometric distribution are shown.}\label{fig:overlap}
+\label{fig:overlap}
+\caption{\Rfunction{plot(x,"overlap")}: Displayed are the numbers of
+  overlapping genes in the two gene lists. The overlap size is drawn
+  as a step function over the respective ranks. Top ranks correspond
+  to up-regulated and bottom ranks to down-regulated genes. In
+  addition, the expected overlap and 95\% confidence intervals derived
+  empirically from the subsampling are shown.}\label{fig:overlap} 
 \end{figure}
 %---------------------------------------------------------------------------------%         
 
@@ -306,7 +338,8 @@ dev.off()
 
 \fbox{
 \begin{minipage}{0.95\textwidth}
-\Rfunction{compareLists(ID.List1, ID.List2, mapping = NULL, two.sided = TRUE, B = 1000, alphas = NULL, min.weight = 1e-5)}
+\Rfunction{compareLists(ID.List1, ID.List2, mapping = NULL, two.sided
+  = TRUE, B = 1000, alphas = NULL, min.weight = 1e-5, invar.q = 0.5)}
 \end{minipage}
 }
 
@@ -325,7 +358,25 @@ The input arguments are:
 \item[--] \Rfunarg{B}: The number of permutations used to estimate empirical p-values.
 \item[--] \Rfunarg{alphas}: A set of $\alpha$ candidates to be evaluated. If set to \Rfunarg{NULL}, \Rfunarg{alphas} are determined such that reasonable maximal ranks to be considered result.
 \item[--] \Rfunarg{min.weight}: The minimal weight to be considered.
+\item[--] \Rfunarg{invar.q}: The fraction of list elements expected to
+  be invariant.
 \end{itemize}
+
+Although \Rfunction{compareLists} is not limited to the use with lists
+deduced from whole-genome gene expression data, the following aspect
+is inspired by this application. In whole-genome gene expression data,
+a large fraction of genes is expected to be invariant in most
+biologically reasonable comparisons. This hipothesis is for instance
+used in noramlization of microarray data. In gene lists ordered
+according to differential expression invariant genes always end up in
+the middle of the lists. Therefore, they do not influence the
+similarity score as we define it for the \OL package. In order to
+account for this effect when generating random scores, we exclude the
+fraction of invariant genes determined by \Rfunarg{invar.q} from the
+shuffling for the generation of the similarity score's null
+distribution. The default value of 50\% for \Rfunarg{invar.q} is a
+underestimate typically used in normalization. It may be reconsidered
+from case to case.
 
 For illustration, we generate two lists from the gene IDs stored in \Rfunction{OL.data\$map}. We pretend the lists were already ordered. For the second list, we shuffle within the first 500 ranks and within the last 500 ranks to get some overlap.
 
@@ -360,11 +411,11 @@ z$intersect[1:5]
 %$
 
 <<echo=FALSE,results=hide>>=
-png(filename="tr_2006_01-z.png",width=600,height=450)
+bitmap(file="tr_2006_01-z.png",width=4,height=3,res=300)
 plot(z)
 dev.off()
-png(filename="tr_2006_01-density.png",width=600,height=450)
-plot(z,"density")
+bitmap(file="tr_2006_01-density.png",width=4,height=3,res=300)
+plot(z,"scores")
 dev.off()
 @
 
@@ -377,7 +428,7 @@ dev.off()
 \begin{figure}[tp]
 \centering
 \includegraphics[width=0.7\textwidth]{tr_2006_01-density.png}
-\caption{\Rfunction{plot(z,"density")}: Shown are kernel density estimates of the distribution of random similarity scores. The observed score is marked by the vertical line.}\label{fig:scores2}
+\caption{\Rfunction{plot(z,"scores")}: Shown are kernel density estimates of the distribution of random similarity scores. The observed score is marked by the vertical line.}\label{fig:scores2}
 \end{figure}
 
 

@@ -31,7 +31,8 @@ shuffledRandomScores <- function(n, nn, bases, B=1000, two.sided=TRUE) {
   if (B < 50) cat("  0%", rep(".",B-6), "100%\n  ", sep="")
   else cat("  0%.......:.........:.........:.........:......100%\n  ")
   for (i in 1:B) {
-    randomScores[i,] <- scoreRankings(sample(n), 1:n, nn, bases, two.sided)
+    rList <- sample(n)
+    randomScores[i,] <- scoreRankings(rList, 1:n, nn, bases, two.sided)
     if ((i %% dotStep)==0) cat("-")
   }
   cat("\n")
@@ -65,43 +66,50 @@ plot.shuffledRandomScores <- function(x, observeds=NULL, revObserveds=NULL, ...)
   }
 }
 
+
 compareLists <- function(ID.List1, ID.List2, mapping=NULL, 
-                         two.sided=TRUE, B=1000, alphas=NULL, 
+                         two.sided=TRUE, B=1000, alphas=NULL, invar.q=0.5,
                          min.weight=1e-5) {
 
-  # checkout mapping
-  n <- length(ID.List2)
-  if (is.null(mapping)) {
-    tmp <- sum(!(ID.List1 %in% ID.List2))
-    if (tmp > 0) stop(tmp, " element(s) of first list not found in second")
-    tmp <- sum(!(ID.List2 %in% ID.List1))
-    if (tmp > 0) stop(tmp, " element(s) of second list not found in first")
+  res <- list()
 
-    Ranks.List1 <- match(ID.List1, ID.List2)
-    Ranks.List2 <- 1:n
-  } else {
+  # checkout mapping
+  if (!is.null(mapping)) {
+    res$mapping <- list()
     tmp <- ID.List1 %in% mapping[,1]
-    if (any(!tmp)) cat(sum(!tmp), " element(s) of first list not found in mapping\n")
+    if (any(!tmp)) 
+      cat(sum(!tmp)," of ",length(tmp)," elements in first list not found in mapping\n")
+    res$mapping$missed1 <- sum(!tmp)
+    res$mapping$rawlen1 <- length(tmp)
     tmp <- ID.List2 %in% mapping[,2]
-    if (any(!tmp)) cat(sum(!tmp), " element(s) of second list not found in mapping\n")
+    if (any(!tmp)) 
+      cat(sum(!tmp)," of ",length(tmp), " elements in second list not found in mapping\n")
+    res$mapping$missed2 <- sum(!tmp)
+    res$mapping$rawlen2 <- length(tmp)
 
     # restrict map
     mapping <- mapping[mapping[,1] %in% ID.List1, ,drop=FALSE]
     mapping <- mapping[mapping[,2] %in% ID.List2, ,drop=FALSE]
+    n <- nrow(mapping)
 
-    # determine ranks for all 
-    m <- match(mapping[,1], ID.List1)
-    r <- rank(m, ties.method="random")
-    ID.List1 <- rep(NA, length(m))
-    ID.List1[r] <- as.character(mapping[,1])
-    Ranks.List1 <- rank(m)
-
-    m <- match(mapping[,2], ID.List2)
-    r <- rank(m, ties.method="random")
-    ID.List2 <- rep(NA, length(m))
-    ID.List2[r] <- as.character(mapping[,2])
-    Ranks.List2 <- rank(m)
+    # convert list IDs into combined mapping-IDs
+    mapIDs <- apply(mapping, 1, paste, collapse="/")
+    oo <- order(match(mapping[,1], ID.List1))
+    ID.List1 <- mapIDs[oo]
+    oo <- order(match(mapping[,2], ID.List2))
+    ID.List2 <- mapIDs[oo]
   }
+
+  # check list consistency
+  tmp <- sum(!(ID.List1 %in% ID.List2))
+  if (tmp > 0) stop(tmp, " element(s) of first list not found in second")
+  tmp <- sum(!(ID.List2 %in% ID.List1))
+  if (tmp > 0) stop(tmp, " element(s) of second list not found in first")
+
+  # determine ranks
+  n <- length(ID.List2)
+  Ranks.List1 <- match(ID.List1, ID.List2)
+  Ranks.List2 <- 1:n
 
   # initialize
   if (is.null(alphas)) {
@@ -115,9 +123,8 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
   nn <- nn[select]
   nalphas <- length(alphas)
 
-  res <- list()
   res$n          <- n
-  res$call       <- list(B=B,alphas=alphas,
+  res$call       <- list(B=B,alphas=alphas,invar.q=invar.q,
                          two.sided=two.sided,min.weight=min.weight)
   res$nn         <- nn
   res$scores     <- numeric(nalphas)
@@ -126,11 +133,11 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
   res$revPvalues <- numeric(nalphas)
   class(res) <- "listComparison"
 
-  res$overlaps <- overlap(ID.List1,ID.List2, max(nn))
-  res$revOverlaps <- overlap(ID.List1,rev(ID.List2), max(nn))
+  res$overlaps <- overlap(ID.List1, ID.List2, max(nn))
+  res$revOverlaps <- overlap(ID.List1, rev(ID.List2), max(nn))
   if (two.sided) {
-    res$overlaps <- c(res$overlaps, rev(overlap(rev(ID.List1),rev(ID.List2), max(nn))))
-    res$revOverlaps <- c(res$revOverlaps, rev(overlap(rev(ID.List1),ID.List2, max(nn))))
+    res$overlaps <- c(res$overlaps, rev(overlap(rev(ID.List1), rev(ID.List2), max(nn))))
+    res$revOverlaps <- c(res$revOverlaps, rev(overlap(rev(ID.List1), ID.List2, max(nn))))
   }
 
   # compute observed
@@ -139,7 +146,7 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
   res$revScores <- scoreRankings(Ranks.List1, n+1-Ranks.List2, nn, bases, two.sided)
 
   # compute random distributions and p-values
-  res$randomScores <- shuffledRandomScores(n, nn, bases, B, two.sided)
+  res$randomScores <- shuffledRandomScores(trunc(n*(1-invar.q)), nn, bases, B, two.sided)
   for (i in 1:nalphas) {
     res$pvalues[i] <- sum(res$randomScores[,i] > res$scores[i])/B
     res$revPvalues[i] <- sum(res$randomScores[,i] > res$revScores[i])/B
@@ -153,9 +160,18 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
 
 print.listComparison <- function(x, ...) {
   cat("List comparison")
-  cat("\n  Assessing similarity of  :", ifelse(x$call$two.sided, "top and bottom ranks", "top ranks"))
-  cat("\n  Length of lists          :", x$n)
-  cat("\n  Number of random samples :", x$call$B)
+  cat("\n  Assessing similarity of     :", ifelse(x$call$two.sided, "top and bottom ranks", "top ranks"))
+  if (is.null(x$mapping)) {
+    cat("\n  Length of lists             :", x$n)
+  } else {
+    cat("\n  Mapped entries from list 1  :", 
+        x$mapping$rawlen1-x$mapping$missed1, "of", x$mapping$rawlen1)
+    cat("\n  Mapped entries from list 2  :", 
+        x$mapping$rawlen2-x$mapping$missed2, "of", x$mapping$rawlen2)
+    cat("\n  Number of mapping pairs     :", x$n)
+  }
+  cat("\n  Quantile of invariant genes :", x$call$invar.q)
+  cat("\n  Number of random samples    :", x$call$B)
   cat("\n--------------------------------------")
   m <- data.frame(Genes=x$nn, 
                   Scores=x$scores,

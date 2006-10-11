@@ -28,8 +28,8 @@ plot.OrderedList <- function(x, which=NULL, no.title=FALSE, ...){
     }  
     
     if (which=="overlap"){
-      order1 <- order(x$scores[,1],decreasing=TRUE)
-      order2 <- order(x$scores[,2],decreasing=TRUE)
+      order1 <- rownames(x$scores)[order(x$scores[,1],decreasing=TRUE)]
+      order2 <- rownames(x$scores)[order(x$scores[,2],decreasing=TRUE)]
       if (x$direction < 0) {
         order2 <- rev(order2)
         tmp <- x$call$labels2[1]
@@ -43,10 +43,18 @@ plot.OrderedList <- function(x, which=NULL, no.title=FALSE, ...){
       overlapnum <- c(up, rev(dn))
       ylims <- range(overlapnum)
 
-      mu <- (1:nn)^2/N
-      upper <- qhyper(0.975,1:nn,N-(1:nn),1:nn)
-      lower <- qhyper(0.025,1:nn,N-(1:nn),1:nn)
-            
+      if (!is.null(x$empirical)){
+        median <- x$empirical$top[,2]           
+        lower  <- x$empirical$top[,1]           
+        upper  <- x$empirical$top[,3]           
+      }
+      else {
+        median <- qhyper(0.5,1:nn,N-(1:nn),1:nn)
+        upper  <- qhyper(0.975,1:nn,N-(1:nn),1:nn)
+        lower  <- qhyper(0.025,1:nn,N-(1:nn),1:nn)
+      }
+
+
       plot(0,xaxt="n",type="n",xlab="",ylab="size of overlap",xlim=c(1,2*nn), 
            ylim=ylims)
 
@@ -56,9 +64,16 @@ plot.OrderedList <- function(x, which=NULL, no.title=FALSE, ...){
       polyY <- rep(polyY,rep(2,length(polyY)))
       polyX <- polyX[-1]
       polyY <- polyY[-length(polyY)]
-
+      
       par(fg="orange")
       polygon(polyX,polyY,angle=90,density=30,border=NA)
+      lines(1:nn, median, col="orange", t="s")
+
+      if (!is.null(x$empirical)){
+        median <- x$empirical$bottom[,2]           
+        lower  <- x$empirical$bottom[,1]           
+        upper  <- x$empirical$bottom[,3]           
+      }
 
       polyX <- c((nn+1):(2*nn),rev((nn+1):(2*nn)))
       polyY <- c(rev(upper),lower)
@@ -68,13 +83,10 @@ plot.OrderedList <- function(x, which=NULL, no.title=FALSE, ...){
       polyY <- polyY[-length(polyY)]
 
       polygon(polyX,polyY,angle=90,density=30,border=NA)
+      lines((nn+1):(2*nn),rev(median), col="orange", t="s")
       par(fg="black")
 
-      lines(1:nn,(1:nn)^2/x$n, col="orange", t="s")
-      lines((nn+1):(2*nn),(nn:1)^2/x$n, col="orange", t="s")
-
       lines(1:nn,overlapnum[1:nn], t="s")
-      lines((nn+1):(2*nn),overlapnum[(nn+1):(2*nn)], t="s")
       lines((nn+1):(2*nn),overlapnum[(nn+1):(2*nn)], t="s")
       
       axStep <- floor(nn / 45) * 10
@@ -91,7 +103,8 @@ plot.OrderedList <- function(x, which=NULL, no.title=FALSE, ...){
            label=paste("Upregulated:",
                        paste(x$call$labels1[2], "in", colnames(x$scores)[1]),
                        paste(x$call$labels2[2], "in", colnames(x$scores)[2]),sep="\n"))
-      legend(nn+1, ylims[1], legend=c("observed", "expected"), col=c("black", "orange"), lty=1, bty="n", yjust=0)
+      legend(nn+1, ylims[1], lty=1, bty="n", yjust=0, 
+             legend=c("observed", "expected"), col=c("black", "orange"))
  
     }
     

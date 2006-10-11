@@ -9,7 +9,9 @@
   of that score (yielding an empirical p-value). 
 }
 \usage{
-compareLists(ID.List1, ID.List2, mapping = NULL, two.sided=TRUE, B = 1000, alphas = NULL, min.weight = 1e-5)
+compareLists(ID.List1, ID.List2, mapping = NULL, 
+             two.sided=TRUE, B = 1000, alphas = NULL, 
+             invar.q = 0.5, min.weight = 1e-5)
 }
 \arguments{
   \item{ID.List1}{first ordered list of identifiers to be compared.}
@@ -24,8 +26,16 @@ compareLists(ID.List1, ID.List2, mapping = NULL, two.sided=TRUE, B = 1000, alpha
   \item{two.sided}{whether the score is to be computed considering both ends of the list,
     or just the top members.}
   \item{B}{the number of permutations used to estimate empirical p-values.}
-  \item{alphas}{a set of alpha candidates to be evaluated. If set to \code{NULL}, alphas are
+  \item{alphas}{a set of alpha candidates to be evaluated. If set to
+    \code{NULL}, alphas are
     determined such that reasonable maximal ranks to be considered result.}
+  \item{invar.q}{quantile of genes expected to be invariant. These are
+    not used
+    during shuffling, since they are expected to stay away from the ends of the 
+    lists, even when the data is perturbed to generate the NULL
+    distribution. The default of 0.5 is reasonnable for whole-genome gene
+    expression analysis, but must be reconsidered when the compared lists
+    are deduced from other sources.}
   \item{min.weight}{the minimal weight to be considered. }
 }
 \details{
