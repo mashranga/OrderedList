@@ -7,7 +7,7 @@ Description: Detection of similarities between ordered lists of
 	expression data can be used to deduce the lists. Significance 
 	of similarities is evaluated by shuffling lists or by resampling 
 	in microarray data, respectively.
-Maintainer: Claudio Lottaz <Claudio.Lottaz@molgen.mpg.de>
+Maintainer: Claudio Lottaz <Claudio.Lottaz@klinik.uni-regensburg.de>
 Depends: R (>= 2.1.0), Biobase (>= 1.5.12), twilight (>= 1.9.2)
 biocViews: Microarray, DifferentialExpression, MultipleComparisons
 LazyLoad: yes
