@@ -169,8 +169,8 @@ OrderedList <- function(eset, B=1000, test="z", beta=1, percent=0.95, verbose=TR
   id1 <- as.character(pdata[data1,]$class)
   id2 <- as.character(pdata[data2,]$class)
   
-  paired1 <- as.logical(unique(pdata[data1,]$paired))
-  paired2 <- as.logical(unique(pdata[data2,]$paired))
+  paired1 <- all(as.logical(as.character(pdata[data1,]$paired)))
+  paired2 <- all(as.logical(as.character(pdata[data2,]$paired)))
   
   id1[id1=="bad"] <- 1
   id2[id2=="bad"] <- 1
