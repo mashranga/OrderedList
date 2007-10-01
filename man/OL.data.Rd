@@ -3,7 +3,7 @@
 \docType{data}
 \title{ Gene Expression and Clinical Information of Two Cancer Studies }
 \description{
-The data contains a list with three elements: \code{breast}, \code{prostate} and \code{map}. The first two are expression sets of class \code{exprSet} taken from the breast cancer study of Huang et al. (2003) and the prostate cancer study of Singh et al. (2002). Both data sets were preprocessed as described in Yang et al. (2006). The data sets serve as illustration for function \code{\link{prepareData}}. Hence the sets contain only a random subsample of the original probes. We further removed unneeded samples from both studies.
+The data contains a list with three elements: \code{breast}, \code{prostate} and \code{map}. The first two are expression sets of class \code{ExpressionSet} taken from the breast cancer study of Huang et al. (2003) and the prostate cancer study of Singh et al. (2002). Both data sets were preprocessed as described in Yang et al. (2006). The data sets serve as illustration for function \code{\link{prepareData}}. Hence the sets contain only a random subsample of the original probes. We further removed unneeded samples from both studies.
 
 The labels of the \code{breast} expression set were extended with 'B' to create two data sets where the probe IDs differ but can be mapped onto each other. The mapping is stored in the data frame \code{map}, which consists of the two probe ID vectors.
 }

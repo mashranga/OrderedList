@@ -2,7 +2,7 @@
 \alias{prepareData}
 \title{ Combining Two Studies into an Expression Set }
 \description{
-The function prepares a collection of two expression sets (\code{exprSet}) and/or Affy batches (\code{AffyBatch}) to be passed on to the main function \code{\link{OrderedList}}. For each data set, one has to specify the variable in the corresponding phenodata from which the grouping into two distinct classes is done. The data sets are then merged into one \code{exprSet} together with the rearranged phenodata. If the studies were done on different platforms but a subset of genes can be mapped from one chip to the other, this information can be provided via the \code{mapping} argument.
+The function prepares a collection of two expression sets (\code{ExpressionSet}) and/or Affy batches (\code{AffyBatch}) to be passed on to the main function \code{\link{OrderedList}}. For each data set, one has to specify the variable in the corresponding phenodata from which the grouping into two distinct classes is done. The data sets are then merged into one \code{ExpressionSet} together with the rearranged phenodata. If the studies were done on different platforms but a subset of genes can be mapped from one chip to the other, this information can be provided via the \code{mapping} argument.
 
 Please note that both data sets have to be \emph{pre-processed} beforehand, either together or independent of each other. In addition, the gene expression values have to be on an \emph{additive scale}, that is logarithmic or log-like scale.
 }
@@ -17,7 +17,7 @@ prepareData(eset1, eset2, mapping = NULL)
 \details{
 Each study has to be stored in a list with five elements:
 \tabular{ll}{
-\code{data} \tab Object of class \code{exprSet} or \code{AffyBatch}. \cr
+\code{data} \tab Object of class \code{ExpressionSet} or \code{AffyBatch}. \cr
 \code{name} \tab Character string with comparison label. \cr
 \code{var} \tab Character string with phenodata variable. Based on this variable, the samples for the two-sample testing will be extracted. \cr
 \code{out} \tab Vector of two character strings with the levels of \code{var} that define the two clinical classes. The order of the two levels must be identical for all studies. Ideally, the first entry corresponds to the \emph{bad} and the second one to the \emph{good} outcome level. \cr
@@ -25,7 +25,7 @@ Each study has to be stored in a list with five elements:
 }
 }
 \value{
-An object of class \code{exprSet} containing the joint data sets with appropriate phenodata.
+An object of class \code{ExpressionSet} containing the joint data sets with appropriate phenodata.
 }
 \author{ Stefanie Scheid }
 \references{

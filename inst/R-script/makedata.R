@@ -2,7 +2,7 @@
 library(affy)
 library(OrderedList)
 
-load("/project/gene_expression/analyses/Singh03/expression_set.rdat")
+load("/nfs/compdiag/molgen/gene_expression/analyses/Singh03/expression_set.rdat")
 prostate <- expr.set
 load("/project/gene_expression/analyses/Huang03/expression_set.rdat")
 breast <- expr.set

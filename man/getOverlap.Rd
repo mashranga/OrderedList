@@ -8,8 +8,8 @@ This function extracts the intersecting set of list identifiers from an object o
 }
 \usage{
 getOverlap(x, max.rank = NULL, percent = 0.95)
-plot.listComparisonOverlap(x, which="overlap", no.title=FALSE,  no.legend=FALSE,
-     list.name1="List 1", list.name2="List 2", ...)
+\method{plot}{listComparisonOverlap}(x, which="overlap", no.title=FALSE,  no.legend=FALSE,
+     list.name1="List 1", list.name2="List 2", \dots)
 }
 \arguments{
   \item{x}{ An object of class \code{listComparison}. }

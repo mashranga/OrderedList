@@ -5,7 +5,7 @@
 The function generates three different plots, which can be selected via argument \code{which}. With default \code{which=NULL}, all three figures are plotted into one graphics device.
 }
 \usage{
-plot.OrderedList(x, which = NULL, no.title=FALSE, ...)
+\method{plot}{OrderedList}(x, which = NULL, no.title=FALSE, \dots)
 }
 \arguments{
   \item{x}{ Object of class \code{OrderedList}. }

@@ -227,8 +227,8 @@ For illustration, we combine the two studies pretending that we need a mapping. 
 <<>>=
 library(OrderedList)
 data(OL.data)
-OL.data$breast
-OL.data$prostate
+show(OL.data$breast)
+show(OL.data$prostate)
 OL.data$map[1:5,]
 
 A <- prepareData(
@@ -286,9 +286,11 @@ hypergeometric distribution are drawn.
 bitmap(file="tr_2006_01-pauc.png",width=4,height=3,res=300)
 plot(x,"pauc")
 dev.off()
+Sys.sleep(20)
 bitmap(file="tr_2006_01-scores.png",width=4,height=3, res=300)
 plot(x,"scores")
 dev.off()
+Sys.sleep(20)
 bitmap(file="tr_2006_01-overlap.png",width=4,height=3, res=300)
 plot(x,"overlap")
 dev.off()
@@ -414,9 +416,11 @@ z$intersect[1:5]
 bitmap(file="tr_2006_01-z.png",width=4,height=3,res=300)
 plot(z)
 dev.off()
+Sys.sleep(20)
 bitmap(file="tr_2006_01-density.png",width=4,height=3,res=300)
 plot(z,"scores")
 dev.off()
+Sys.sleep(20)
 @
 
 \begin{figure}[tp]
