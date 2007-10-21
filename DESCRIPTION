@@ -12,4 +12,4 @@ Depends: R (>= 2.1.0), Biobase (>= 1.5.12), twilight (>= 1.9.2)
 biocViews: Microarray, DifferentialExpression, MultipleComparisons
 LazyLoad: yes
 URL: http://compdiag.molgen.mpg.de/software/index.shtml
-License: GPL version 2.0 or newer
+License: GPL (>= 2)
