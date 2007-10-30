@@ -119,7 +119,8 @@ OrderedList <- function(eset, B=1000, test="z", beta=1, percent=0.95, verbose=TR
 
   ### check arguments
 
-  if (class(eset)!="exprSet"){
+	if(!is(eset,"eSet")){  
+	#if (class(eset)!="ExpressionSet"){
     stop("Please prepare the input expression set with function 'prepareData'.")
   }
   

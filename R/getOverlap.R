@@ -5,7 +5,7 @@ getOverlap <- function(x,max.rank=NULL,percent=0.95){
 
   if (is.null(max.rank)) {
     # find the rank where the best p-value is achieved
-#    tmp <- which.min(c(x$pvalue, x$revPvalue))
+#    tmp <- which.min(c(x$pvalue, x$revPvalue)) # which.min = R !
     tmpx <- c(x$pvalue, x$revPvalue)
     tmp <- max(which(tmpx == min(tmpx)))
     max.rank <- x$nn[(tmp-1)%%length(x$nn)+1]

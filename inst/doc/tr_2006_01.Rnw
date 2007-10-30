@@ -28,10 +28,10 @@
 
 
 %---------------------------------------------------------------------------------%  
-\title{Similarities of Ordered Gene Lists\bigskip \\ User's Guide to the Bioconductor Package \Rpackage{OrderedList} 1.3.5}
+\title{Similarities of Ordered Gene Lists\bigskip \\ User's Guide to the Bioconductor Package \Rpackage{OrderedList} 1.11.1}
 
 \author{Stefanie Scheid, Claudio Lottaz, Xinan Yang, and Rainer Spang\bigskip \\
-  \small email: \texttt{first.last@molgen.mpg.de}
+  \small email: \texttt{Claudio.Lottaz@klinik.uni-regensburg.de}
   }
 
 \reportnr{01}
@@ -195,13 +195,13 @@ be selected.
 \end{minipage}
 }
 
-The function prepares a collection of two expression sets of class \Rclass{exprSet} and/or Affy batches of class \Rclass{AffyBatch} to be passed on to the main function \Rfunction{OrderedList}. For each data set, one has to specify the variable in the corresponding phenodata from which the grouping into two distinct classes is done. The data sets are then merged into one 'exprSet' together with the rearranged phenodata. If the studies were done on different platforms but a subset of genes can be mapped from one chip to the other, this information can be provided via the 'mapping' argument.
+The function prepares a collection of two expression sets of class \Rclass{ExpressionSet} and/or Affy batches of class \Rclass{AffyBatch} to be passed on to the main function \Rfunction{OrderedList}. For each data set, one has to specify the variable in the corresponding phenodata from which the grouping into two distinct classes is done. The data sets are then merged into one 'ExpressionSet' together with the rearranged phenodata. If the studies were done on different platforms but a subset of genes can be mapped from one chip to the other, this information can be provided via the 'mapping' argument.
 
 Please note that both data sets have to be pre-processed beforehand, either together or independently of each other. The preprocessed gene expression values have to be on an additive scale, that is logarithmic or log-like scale.
 
 The two inputs \Rfunarg{eset1} and \Rfunarg{eset2} are named lists with five elements:
 \begin{itemize}
-\item[--] \Rfunarg{data}: Object of class \Rfunarg{exprSet} or \Rfunarg{AffyBatch}.
+\item[--] \Rfunarg{data}: Object of class \Rfunarg{ExpressionSet} or \Rfunarg{AffyBatch}.
 \item[--] \Rfunarg{name}: Character string with comparison label.
 \item[--] \Rfunarg{var}: Character string with phenodata variable. Based on this variable, the samples for the two-sample testing will be extracted.
 \item[--] \Rfunarg{out}: Vector of two character strings with the levels of \Rfunarg{var} that define the two clinical classes. The order of the two levels must be identical for all studies. Ideally, the first entry corresponds to the ``bad'' and the second one to the ``good'' outcome level.
@@ -211,7 +211,7 @@ The two inputs \Rfunarg{eset1} and \Rfunarg{eset2} are named lists with five ele
 The optional argument \Rfunarg{mapping} is a data frame containing one named vector for each study. The vectors are comprised of probe IDs that fit to the rownames of the corresponding expression set. For each study, the IDs are ordered identically. For example, the $k$th row of \Rfunarg{mapping} provides the label of the $k$th gene in each single study. If all studies were done on the same chip, no mapping is needed (default).
 
 We illustrate the use of function \Rfunarg{prepareData} with an application on the exemplary data sets stored in \Rfunction{data(OL.data)}. The data contains a list with three elements: \Rfunarg{breast}, \Rfunarg{prostate}
-and \Rfunarg{map}. The first two are expression sets of class \Rclass{exprSet}
+and \Rfunarg{map}. The first two are expression sets of class \Rclass{ExpressionSet}
 taken from the breast cancer study of Huang et al.~(2003) \cite{huang03} and the
 prostate cancer study of Singh et al.~(2002) \cite{singh02}. Both data sets were
 preprocessed as described in Yang et al.~(2006) \cite{yang06} and 
@@ -227,8 +227,8 @@ For illustration, we combine the two studies pretending that we need a mapping. 
 <<>>=
 library(OrderedList)
 data(OL.data)
-show(OL.data$breast)
-show(OL.data$prostate)
+OL.data$breast
+OL.data$prostate
 OL.data$map[1:5,]
 
 A <- prepareData(

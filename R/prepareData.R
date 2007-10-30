@@ -1,11 +1,13 @@
 prepareData <- function(eset1,eset2,mapping=NULL){
-  x <- list(eset1,eset2)
-  n <- length(x)
+  x <- list(eset1,eset2) 
+  n <- length(x) # always 2 ??
+
+  cat("Entering method 'prepareData'  . . . \n")
 
   ### Some sanity checks first.
   if (is.null(mapping)){
-    M <- exprs(x[[1]]$data)
-    nn <- rownames(M)
+    M <- exprs(x[[1]]$data) # methodCall 'exprs()' of class:ExpressionSet
+    nn <- rownames(M) # get rownames of M
     for (i in 2:n){
       M <- exprs(x[[i]]$data)
       if (sum(rownames(M)%in%nn)!=length(nn)){stop("Probe ID differ between studies. Please specify a mapping.\n")}
@@ -13,15 +15,15 @@ prepareData <- function(eset1,eset2,mapping=NULL){
   }
 
   if (!is.null(mapping)){
-    if (sum(is.na(mapping))>0){stop("'mapping' must not contain missing values.\n")}
-    nn <- length(mapping)
-    mm <- length(mapping[[1]])
+    if (sum(is.na(mapping))>0){stop("'mapping' must not contain missing values.\n")} ### any NA-values?
+    nn <- length(mapping) 	### nr of elements
+    mm <- length(mapping[[1]]) 	### value 'mm' is never used !!
     if (nn!=n){stop("Number of mappings does not match number of studies.\n")}
-    for (i in 1:n){
+    for (i in 1:n){ 	### n= nr of studies, here: 2
       M <- exprs(x[[i]]$data)
-      ww <- mapping[x[[i]]$name]
-      ww <- unlist(ww[[1]])
-      select <- which(ww%in%rownames(M))
+      ww <- mapping[x[[i]]$name] 	### get element of mapping by index 'name' of x
+      ww <- unlist(ww[[1]]) # convert to vector to gain atomic values
+      select <- which(ww%in%rownames(M)) 	### get index of elements that are TRUE
       mapping <- mapping[select,]
     }
   }
@@ -38,7 +40,7 @@ prepareData <- function(eset1,eset2,mapping=NULL){
     }
   }
 
-  ### Merge studies into one exprSet.
+  ### Merge studies into one ExpressionSet (deprecated: exprSet).
   eset <- numeric()
   outcome <- character()
   dataset <- character()
@@ -64,7 +66,7 @@ prepareData <- function(eset1,eset2,mapping=NULL){
     x1 <- rownames(p)[p[,var]%in%out[1]] ### bad outcome
     x2 <- rownames(p)[p[,var]%in%out[2]] ### good outcome
 
-    eset <- cbind(eset,M[,x1],M[,x2])
+    eset <- cbind(eset,M[,x1],M[,x2]) # merge datasets into one ExpressionSet instance
     outcome <- c(outcome,rep(out[1],length(x1)),rep(out[2],length(x2)))
     class <- c(class,rep("bad",length(x1)),rep("good",length(x2)))
     dataset <- c(dataset,rep(x[[i]]$name,length(x1)+length(x2)))
@@ -75,12 +77,31 @@ prepareData <- function(eset1,eset2,mapping=NULL){
   }
 
   p <- data.frame(outcome=outcome,dataset=dataset,class=class,paired=paired)
-  rownames(p) <- colnames(eset)
-  desc <- list("outcome","dataset","class","paired")
-  names(desc) <- names(p)
+   
+   rownames(p) <- colnames(eset)
 
-  pdata <- new("phenoData", pData=p, varLabels=desc) 
-  eset  <- new("exprSet", exprs=eset, phenoData=pdata)
+   
+   # desc <- list("outcome","dataset","class","paired") 	
+   desc <- data.frame(labelDescription=c("outcome","dataset","class","paired"))
+   
+   
+  rownames(desc) <- colnames(p)
+  
+  ## Adaption to new class 'ExpressionSet'##
+  pdata <- new("AnnotatedDataFrame", data=p, varMetadata=desc) ### data:=data.frame ; varMetadata:=data.frame
+  eset  <- new("ExpressionSet", exprs=eset, phenoData=pdata) ### exprs:= matrix ; phenoData:=AnnotatedDataFrame 
+
+
+  	## Would 
+	## as(pdata,"AnnotatedDataFrame")  and 
+	## as(eset,"ExpressionSet") 
+	## yield the same ???
+
+
+  ## original implementation using 'exprSet' class ##
+  # pdata <- new("phenoData", pData=p, varLabels=desc)  
+  # eset  <- new("exprSet", exprs=eset, phenoData=pdata)
 
   return(eset)
+
 }
