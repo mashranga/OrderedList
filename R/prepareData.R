@@ -1,8 +1,6 @@
 prepareData <- function(eset1,eset2,mapping=NULL){
   x <- list(eset1,eset2) 
-  n <- length(x) # always 2 ??
-
-  cat("Entering method 'prepareData'  . . . \n")
+  n <- length(x) 
 
   ### Some sanity checks first.
   if (is.null(mapping)){
@@ -81,26 +79,16 @@ prepareData <- function(eset1,eset2,mapping=NULL){
    rownames(p) <- colnames(eset)
 
    
-   # desc <- list("outcome","dataset","class","paired") 	
+
    desc <- data.frame(labelDescription=c("outcome","dataset","class","paired"))
    
    
   rownames(desc) <- colnames(p)
   
-  ## Adaption to new class 'ExpressionSet'##
+
   pdata <- new("AnnotatedDataFrame", data=p, varMetadata=desc) ### data:=data.frame ; varMetadata:=data.frame
   eset  <- new("ExpressionSet", exprs=eset, phenoData=pdata) ### exprs:= matrix ; phenoData:=AnnotatedDataFrame 
 
-
-  	## Would 
-	## as(pdata,"AnnotatedDataFrame")  and 
-	## as(eset,"ExpressionSet") 
-	## yield the same ???
-
-
-  ## original implementation using 'exprSet' class ##
-  # pdata <- new("phenoData", pData=p, varLabels=desc)  
-  # eset  <- new("exprSet", exprs=eset, phenoData=pdata)
 
   return(eset)
 
