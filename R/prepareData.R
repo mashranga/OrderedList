@@ -1,4 +1,15 @@
 prepareData <- function(eset1,eset2,mapping=NULL){
+
+	if(!is(eset1$data,"eSet"))
+	{
+	stop("Object '",eset1$name, "' needs to inherit from 'eSet', but is of class '",class(eset1$data),"' instead !\n")
+	}
+	if(!is(eset2$data,"eSet"))
+	{
+	stop("Object '",eset2$name, "' needs to inherit from 'eSet', but is of class '",class(eset2$data),"' instead !\n")
+	}
+
+
   x <- list(eset1,eset2) 
   n <- length(x) 
 

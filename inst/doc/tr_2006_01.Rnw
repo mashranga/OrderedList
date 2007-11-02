@@ -28,7 +28,7 @@
 
 
 %---------------------------------------------------------------------------------%  
-\title{Similarities of Ordered Gene Lists\bigskip \\ User's Guide to the Bioconductor Package \Rpackage{OrderedList} 1.11.1}
+\title{Similarities of Ordered Gene Lists\bigskip \\ User's Guide to the Bioconductor Package \Rpackage{OrderedList} 1.11.2}
 
 \author{Stefanie Scheid, Claudio Lottaz, Xinan Yang, and Rainer Spang\bigskip \\
   \small email: \texttt{Claudio.Lottaz@klinik.uni-regensburg.de}

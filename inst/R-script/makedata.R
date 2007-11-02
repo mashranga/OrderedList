@@ -2,19 +2,13 @@
 library(affy)
 library(OrderedList)
 
+source("/nfs/compdiag/user/koc16861/bioconductor/OrderedList/R/prepareData.R")
+source("/nfs/compdiag/user/koc16861/bioconductor/OrderedList/R/OrderedList.R")
 
-load("/nfs/compdiag/molgen/gene_expression/analyses/Singh03/expression_set.rdat") # stammen aus der compdiag-Pipeline !
-
-
-
-
-
+load("/nfs/compdiag/molgen/gene_expression/analyses/Singh03/expression_set.rdat") 
 prostate <- updateObject(expr.set)
 
-
 load("/nfs/compdiag/molgen/gene_expression/analyses/Huang03/expression_set.rdat")
-
-
 breast <- updateObject(expr.set)
 
 
@@ -24,11 +18,7 @@ rm(expr.set)
 set.seed(123)
 nn <- rownames(intensity(breast))[sample(1000)]
 
-
-
 map <- data.frame(prostate=nn,breast=paste(nn,"_B",sep=""))
-
-
 
 e <- intensity(prostate)[nn,] # class(prostate):= AffyBatch
 
@@ -61,10 +51,6 @@ x <- c(x1,x2)
 p <- p[x,]
 e <- e[,x]
 
-
-
-
-
 pp <- data.frame(labelDescription=names(p))
 rownames(pp) <- colnames(p)
 pdata <- new("AnnotatedDataFrame", data=p, varMetadata=pp)
@@ -74,15 +60,12 @@ breast <- new("ExpressionSet", exprs=e, phenoData=pdata)
 OL.data <- list(breast=breast,prostate=prostate,map=map)
 save(OL.data,file="../../data/OL.data.rda",compress=T)
 
-
-
-
 a <- prepareData(		                 		
 		list(data=breast,name="breast",var="Risk",out=c("high","low"),paired=FALSE),
 		list(data=prostate,name="prostate",var="outcome",out=c("Rec","NRec"),paired=FALSE),	             			mapping=map
                )
 
-
+eset1<-list(data=breast,name="breast",var="Risk",out=c("high","low"),paired=FALSE)
 
 OL.result <- OrderedList(a)
 save(OL.result,file="../../data/OL.result.rda",compress=T)
