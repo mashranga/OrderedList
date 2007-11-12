@@ -6,11 +6,18 @@ source("/nfs/compdiag/user/koc16861/bioconductor/OrderedList/R/prepareData.R")
 source("/nfs/compdiag/user/koc16861/bioconductor/OrderedList/R/OrderedList.R")
 
 load("/nfs/compdiag/molgen/gene_expression/analyses/Singh03/expression_set.rdat") 
+cat("class(expr.set_prostate) ::",class(expr.set),"\n") # AffyBatch
+expr.set.prostate<-expr.set
+cat("class(expr.set.prostate@phenoData)::", class(expr.set.prostate@phenoData),"\n")
 prostate <- updateObject(expr.set)
+cat("class(prostate)[update] ::",class(prostate),"\n") # AffyBatch
 
 load("/nfs/compdiag/molgen/gene_expression/analyses/Huang03/expression_set.rdat")
+cat("class(expr.set_breast) ::",class(expr.set),"\n") # AffyBatch
+expr.set.breast<-expr.set
+cat("class(expr.set.breast@phenoData)::", class(expr.set.breast@phenoData),"\n")
 breast <- updateObject(expr.set)
-
+cat("class(breast)[update] ::",class(breast),"\n") # AffyBatch
 
 rm(expr.set)
 
@@ -65,7 +72,7 @@ a <- prepareData(
 		list(data=prostate,name="prostate",var="outcome",out=c("Rec","NRec"),paired=FALSE),	             			mapping=map
                )
 
-eset1<-list(data=breast,name="breast",var="Risk",out=c("high","low"),paired=FALSE)
+#eset1<-list(data=breast,name="breast",var="Risk",out=c("high","low"),paired=FALSE)
 
 OL.result <- OrderedList(a)
 save(OL.result,file="../../data/OL.result.rda",compress=T)

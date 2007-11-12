@@ -101,6 +101,7 @@ prepareData <- function(eset1,eset2,mapping=NULL){
   eset  <- new("ExpressionSet", exprs=eset, phenoData=pdata) ### exprs:= matrix ; phenoData:=AnnotatedDataFrame 
 
 
+  #cat("class(eset): ", class(eset),"\n")
   return(eset)
 
 }
