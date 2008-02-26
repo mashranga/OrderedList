@@ -49,7 +49,7 @@ prepareData <- function(eset1,eset2,mapping=NULL){
     }
   }
 
-  ### Merge studies into one ExpressionSet (deprecated: exprSet).
+  ### Merge studies into one ExpressionSet.
   eset <- numeric()
   outcome <- character()
   dataset <- character()
