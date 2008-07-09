@@ -146,7 +146,7 @@ plot.listComparisonOverlap <- function(x, which="overlap", no.title=FALSE, no.le
         text(1, ylims[2], adj=c(0,1),
              label=paste("top in ", list.name1, "\ntop in ", list.name2, sep=""))
         text(2*nn, ylims[2], adj=c(1,1),
-             label=paste("bottom in ", list.name1, "\nbottmo in ", list.name2, sep=""))
+             label=paste("bottom in ", list.name1, "\nbottom in ", list.name2, sep=""))
       } else {
         text(1, ylims[2], adj=c(0,1),
              label=paste("top in ", list.name1, "\nbottom in ", list.name2, sep=""))
