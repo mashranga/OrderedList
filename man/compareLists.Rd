@@ -11,7 +11,8 @@
 \usage{
 compareLists(ID.List1, ID.List2, mapping = NULL, 
              two.sided=TRUE, B = 1000, alphas = NULL, 
-             invar.q = 0.5, min.weight = 1e-5)
+             invar.q = 0.5, min.weight = 1e-5,
+           , no.reverse=FALSE)
 }
 \arguments{
   \item{ID.List1}{first ordered list of identifiers to be compared.}
@@ -37,6 +38,7 @@ compareLists(ID.List1, ID.List2, mapping = NULL,
     expression analysis, but must be reconsidered when the compared lists
     are deduced from other sources.}
   \item{min.weight}{the minimal weight to be considered. }
+  \item{no.reverse}{skip computing scores for reversed second list.}
 }
 \details{
   The two lists received as arguments are matched against each other

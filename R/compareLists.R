@@ -69,7 +69,7 @@ plot.shuffledRandomScores <- function(x, observeds=NULL, revObserveds=NULL, ...)
 
 compareLists <- function(ID.List1, ID.List2, mapping=NULL, 
                          two.sided=TRUE, B=1000, alphas=NULL, invar.q=0.5,
-                         min.weight=1e-5) {
+                         min.weight=1e-5, no.reverse=FALSE) {
 
   res <- list()
 
@@ -125,7 +125,8 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
 
   res$n          <- n
   res$call       <- list(B=B,alphas=alphas,invar.q=invar.q,
-                         two.sided=two.sided,min.weight=min.weight)
+                         two.sided=two.sided,min.weight=min.weight,
+                         no.reverse=no.reverse)
   res$nn         <- nn
   res$scores     <- numeric(nalphas)
   res$revScores  <- numeric(nalphas)
@@ -134,22 +135,26 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
   class(res) <- "listComparison"
 
   res$overlaps <- overlap(ID.List1, ID.List2, max(nn))
-  res$revOverlaps <- overlap(ID.List1, rev(ID.List2), max(nn))
+  if (no.reverse) { res$revOverlaps <- rep(0, length(res$overlaps)) } 
+  else { res$revOverlaps <- overlap(ID.List1, rev(ID.List2), max(nn)) }
   if (two.sided) {
     res$overlaps <- c(res$overlaps, rev(overlap(rev(ID.List1), rev(ID.List2), max(nn))))
-    res$revOverlaps <- c(res$revOverlaps, rev(overlap(rev(ID.List1), ID.List2, max(nn))))
+    if (no.reverse) { res$revOverlaps <- rep(res$revOverlaps, 2) }
+    else { res$revOverlaps <- c(res$revOverlaps, rev(overlap(rev(ID.List1), ID.List2, max(nn)))) }
   }
 
   # compute observed
   bases <- exp(-alphas)
   res$scores <- scoreRankings(Ranks.List1, Ranks.List2, nn, bases, two.sided)
-  res$revScores <- scoreRankings(Ranks.List1, n+1-Ranks.List2, nn, bases, two.sided)
+  if (no.reverse) { res$revScores <- rep(0, length(res$scores)) }
+  else { res$revScores <- scoreRankings(Ranks.List1, n+1-Ranks.List2, nn, bases, two.sided) }
 
   # compute random distributions and p-values
   res$randomScores <- shuffledRandomScores(trunc(n*(1-invar.q)), nn, bases, B, two.sided)
   for (i in 1:nalphas) {
     res$pvalues[i] <- sum(res$randomScores[,i] > res$scores[i])/B
-    res$revPvalues[i] <- sum(res$randomScores[,i] > res$revScores[i])/B
+    if (no.reverse) { res$revPvalues[i] <- 1 }
+    else { res$revPvalues[i] <- sum(res$randomScores[,i] > res$revScores[i])/B }
   }
 
   res$ID.List1 <- ID.List1
