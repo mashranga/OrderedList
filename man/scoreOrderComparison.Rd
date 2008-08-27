@@ -31,7 +31,7 @@ scoreOrderComparisonBoth(exprs1, labels1, paired1,
 \details{
   \code{scoreOrderComparison} computes scores only for the direct
   comparison. \code{scoreOrderComparisonBoth} in addition computes
-  scores for reversed orderes, i.e., one of the rankings is reversed.
+  scores for reversed orders, i.e., one of the rankings is reversed.
 }
 \value{
   For each entry in \code{bases}, thus for each regularization parameter alpha,
