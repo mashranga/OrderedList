@@ -12,9 +12,9 @@
 %   Say hi
 %
 
-\def\fileversion{1.0}
+\def\fileversion{1.1}
 \def\filename{compdiag}
-\def\filedate{2002/11/30}
+\def\filedate{2010/04/15}
 
 \ProvidesPackage{compdiag}[\filedate\space\fileversion\space CompDiag
                  package by FM & CL]
@@ -25,13 +25,7 @@
 %
 
 % are we using pdftex or normaltex
-\newif\ifpdf
-\ifx\pdfoutput\undefined
-   \pdffalse
-\else
-   \pdfoutput=1
-   \pdftrue
-\fi
+\usepackage{ifpdf}
 
 \ifpdf
   \usepackage[pdftex]{graphicx}
@@ -59,7 +53,7 @@
 %\textwidth 15cm
 %\textheight 22cm
 \usepackage{a4}
-\usepackage[a4paper,left=3cm,right=3cm,top=3cm,bottom=3cm]{geometry}
+\usepackage[a4paper,left=3cm,right=3cm]{geometry}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -70,7 +64,7 @@
 \definecolor{Blue}{rgb}{0,0,0.8}
 \definecolor{Grau}{rgb}{0.25,0.25,0.25}
 
-\def\@mpilogo{\includegraphics[height=25mm,keepaspectratio]{MPIMG_logo.png}}
+\def\@mpilogo{\includegraphics[height=25mm,keepaspectratio]{minerva_bcb}}
 \def\@bcblogo{\includegraphics[height=27mm,keepaspectratio]{bcb_logo}}
 
 %   Theorem-like definitions
