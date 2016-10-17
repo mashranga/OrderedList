@@ -1,0 +1,18 @@
+import(methods)
+importClassesFrom(Biobase, AnnotatedDataFrame, eSet, ExpressionSet,
+                  Versioned, VersionedBiobase)
+importMethodsFrom(Biobase, exprs, pData)
+importFrom(Biobase, addVigs2WinMenu)
+importFrom(graphics, abline, axis, box, legend, lines, mtext, par,
+           plot, polygon, rug, text, title)
+importFrom(stats, density, integrate, median, qhyper, quantile)
+importFrom(twilight, twilight.permute.pair, twilight.permute.unpair,
+           twilight.teststat)
+
+export(check.test.args, compareLists, getOverlap, OrderedList, overlap,
+       plot.listComparison, plot.listComparisonOverlap, plot.OrderedList,
+       plot.shuffledRandomScores, prepareData, preparePermutations,
+       print.listComparison, print.listComparisonOverlap, print.OrderedList,
+       print.shuffledRandomScores, scoreOrderComparison,
+       scoreOrderComparisonBoth, scoreRankings, shuffledRandomScores, test.fc,
+       test.t, test.z)
