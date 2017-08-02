@@ -113,7 +113,7 @@ compareLists <- function(ID.List1, ID.List2, mapping=NULL,
 
   # initialize
   if (is.null(alphas)) {
-    nn <- c(100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000, 2500)
+    nn <- c(1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000, 2500)
     alphas <- -log(min.weight)/nn
   } else {
     nn <- floor(-log(min.weight)/alphas)
